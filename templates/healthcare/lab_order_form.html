@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-vial-virus text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'healthcare:lab_order_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Patient *</label>
+                                {{ form.patient }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Ordering Physician *</label>
+                                {{ form.doctor }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Test Code *</label>
+                                {{ form.test_code }}
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Diagnostic Test Name *</label>
+                                {{ form.test_name }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Specimen / Sample Type *</label>
+                                {{ form.sample_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Standard Lab Test Fee ($) *</label>
+                                {{ form.price }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-barcode me-1"></i> Generate Lab Order & Barcode
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

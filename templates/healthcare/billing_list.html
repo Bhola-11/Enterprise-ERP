@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Medical Billing & Encounters - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>Medical Billing & Encounters</h1>
+            <p class="text-muted mb-0">Hospital encounters, clinical consultations, diagnostic lab charges, and insurance TPA co-pay claims.</p>
+        </div>
+        <a href="{% url 'healthcare:patient_list' %}" class="btn btn-primary">
+            <i class="fa-solid fa-folder-medical me-1"></i> Patient Master EMR
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-xs">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bill #</th>
+                            <th>Date</th>
+                            <th>Patient Name</th>
+                            <th class="text-end">Consultation</th>
+                            <th class="text-end">Labs</th>
+                            <th class="text-end">Room Charges</th>
+                            <th class="text-end">Insurance (80%)</th>
+                            <th class="text-end">Patient Co-Pay</th>
+                            <th class="text-end">Grand Total</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in bills %}
+                        <tr>
+                            <td><strong class="font-monospace text-primary fs-6">{{ bill.bill_number|slice:":8" }}</strong></td>
+                            <td>{{ bill.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <strong><a href="{% url 'healthcare:patient_detail' pk=bill.patient.id %}">{{ bill.patient.full_name }}</a></strong>
+                                <div class="text-muted">MRN: {{ bill.patient.patient_mrn|slice:":8" }}</div>
+                            </td>
+                            <td class="text-end font-monospace">${{ bill.consultation_charges|floatformat:2 }}</td>
+                            <td class="text-end font-monospace">${{ bill.lab_charges|floatformat:2 }}</td>
+                            <td class="text-end font-monospace">${{ bill.room_charges|floatformat:2 }}</td>
+                            <td class="text-end font-monospace text-success">-${{ bill.insurance_covered_amount|floatformat:2|intcomma }}</td>
+                            <td class="text-end font-monospace fw-bold text-primary">${{ bill.patient_co_pay|floatformat:2|intcomma }}</td>
+                            <td class="text-end font-monospace fw-bold fs-6">${{ bill.grand_total|floatformat:2|intcomma }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success">{{ bill.status }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-file-invoice-dollar fa-3x mb-2 text-black-50"></i>
+                                <p>No medical bills generated yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

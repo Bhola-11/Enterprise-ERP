@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-user-plus text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'healthcare:patient_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <h6 class="text-uppercase text-muted fw-bold text-xs mb-3">1. Personal & Demographics</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">First Name *</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Last Name *</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Date of Birth *</label>
+                                {{ form.date_of_birth }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Gender *</label>
+                                {{ form.gender }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Blood Group *</label>
+                                {{ form.blood_group }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Phone Number *</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email Address</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted fw-bold text-xs mb-3 border-top pt-3">2. Emergency Contact & Insurance</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Emergency Contact Name</label>
+                                {{ form.emergency_contact_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Emergency Contact Phone</label>
+                                {{ form.emergency_contact_phone }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Insurance Provider / TPA</label>
+                                {{ form.insurance_provider }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Policy / Member ID</label>
+                                {{ form.insurance_policy_number }}
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted fw-bold text-xs mb-3 border-top pt-3 text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>3. Clinical Risk Factors & Medical History</h6>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-danger">Known Drug / Food Allergies</label>
+                            {{ form.allergy_notes }}
+                            <div class="form-text">Comma-separated list (e.g. Penicillin, Sulfa, NSAIDs, Peanuts). Clinical engine will cross-check prescriptions.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Chronic Medical Conditions</label>
+                            {{ form.chronic_conditions }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-save me-1"></i> Register Patient EMR Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

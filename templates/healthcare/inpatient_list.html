@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Inpatient Admissions - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-bed-pulse text-primary me-2"></i>Inpatient Care & Ward Occupancy (IPD)</h1>
+            <p class="text-muted mb-0">General wards, Deluxe suites, ICU/CCU bed occupancy, daily care notes, and discharge management.</p>
+        </div>
+        <a href="{% url 'healthcare:inpatient_admit' %}" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus me-1"></i> Admit Inpatient
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-xs">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Admission #</th>
+                            <th>Admit Date</th>
+                            <th>Patient Name</th>
+                            <th>Ward Type</th>
+                            <th>Room / Bed</th>
+                            <th>Admitting Doctor</th>
+                            <th class="text-end">Daily Rate</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for adm in admissions %}
+                        <tr>
+                            <td><strong class="font-monospace text-primary fs-6">{{ adm.admission_number|slice:":8" }}</strong></td>
+                            <td>{{ adm.admission_date|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <strong><a href="{% url 'healthcare:patient_detail' pk=adm.patient.id %}">{{ adm.patient.full_name }}</a></strong>
+                                <div class="text-muted">MRN: {{ adm.patient.patient_mrn|slice:":8" }}</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ adm.get_ward_type_display }}</span></td>
+                            <td><strong>{{ adm.room_number }}</strong> ({{ adm.bed_number }})</td>
+                            <td>Dr. {{ adm.admitting_doctor.user.last_name }}</td>
+                            <td class="text-end font-monospace fw-bold">${{ adm.daily_bed_rate|floatformat:2 }}/day</td>
+                            <td class="text-center">
+                                {% if adm.status == 'ADMITTED' %}
+                                    <span class="badge bg-danger">Occupying Bed</span>
+                                {% else %}
+                                    <span class="badge bg-success">Discharged</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-bed-pulse fa-3x mb-2 text-black-50"></i>
+                                <p>No current inpatient admissions.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

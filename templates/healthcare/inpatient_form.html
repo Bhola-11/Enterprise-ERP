@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-bed-pulse text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'healthcare:inpatient_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Patient *</label>
+                                {{ form.patient }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Admitting Doctor *</label>
+                                {{ form.admitting_doctor }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Ward Type *</label>
+                                {{ form.ward_type }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Room # *</label>
+                                {{ form.room_number }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Bed # *</label>
+                                {{ form.bed_number }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Daily Bed Rate ($) *</label>
+                                {{ form.daily_bed_rate }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Admission Date & Time *</label>
+                                {{ form.admission_date }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Reason for Admission / Clinical Indication *</label>
+                            {{ form.admission_reason }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-bed me-1"></i> Confirm Inpatient Admission
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

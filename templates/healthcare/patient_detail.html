@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}EMR Chart - {{ patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Top Patient Demographic Banner -->
+    <div class="card shadow-sm border-0 mb-4 bg-white">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="bg-primary text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-user-injured fa-2x"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center">
+                            <h3 class="fw-bold mb-0 me-2">{{ patient.full_name }}</h3>
+                            <span class="badge bg-danger fs-6">{{ patient.blood_group }}</span>
+                            <span class="badge bg-secondary font-monospace ms-2">MRN: {{ patient.patient_mrn|slice:":8" }}</span>
+                        </div>
+                        <div class="text-muted text-xs mt-1">
+                            <span><i class="fa-solid fa-cake-candles me-1"></i> {{ patient.date_of_birth|date:"M d, Y" }}</span>
+                            <span class="mx-2">|</span>
+                            <span><i class="fa-solid fa-venus-mars me-1"></i> {{ patient.get_gender_display }}</span>
+                            <span class="mx-2">|</span>
+                            <span><i class="fa-solid fa-phone me-1"></i> {{ patient.phone }}</span>
+                            {% if patient.insurance_provider %}
+                                <span class="mx-2">|</span>
+                                <span class="badge bg-info text-white"><i class="fa-solid fa-shield-halved me-1"></i> {{ patient.insurance_provider }} ({{ patient.insurance_policy_number }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'healthcare:billing_generate' patient_id=patient.id %}" class="btn btn-outline-success btn-sm">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Generate Bill
+                    </a>
+                    <a href="{% url 'healthcare:appointment_book' %}?patient={{ patient.id }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-calendar-plus me-1"></i> Book Appt
+                    </a>
+                </div>
+            </div>
+
+            {% if patient.allergy_notes %}
+            <div class="alert alert-danger py-2 px-3 mt-3 mb-0 d-flex align-items-center">
+                <i class="fa-solid fa-triangle-exclamation fa-lg me-2"></i>
+                <div>
+                    <strong>ALLERGY WARNING:</strong> {{ patient.allergy_notes }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if patient.chronic_conditions %}
+            <div class="alert alert-warning py-2 px-3 mt-2 mb-0 text-xs">
+                <strong>Chronic Conditions:</strong> {{ patient.chronic_conditions }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- EMR Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="emrTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active fw-bold" id="soap-tab" data-bs-toggle="tab" data-bs-target="#soap" type="button">
+                <i class="fa-solid fa-stethoscope me-1"></i> Clinical Consultations ({{ clinical_notes|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold" id="rx-tab" data-bs-toggle="tab" data-bs-target="#rx" type="button">
+                <i class="fa-solid fa-pills me-1"></i> Prescriptions ({{ prescriptions|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold" id="labs-tab" data-bs-toggle="tab" data-bs-target="#labs" type="button">
+                <i class="fa-solid fa-vial-virus me-1"></i> Lab Reports ({{ lab_orders|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold" id="ipd-tab" data-bs-toggle="tab" data-bs-target="#ipd" type="button">
+                <i class="fa-solid fa-bed-pulse me-1"></i> Inpatient Admissions ({{ admissions|length }})
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link fw-bold" id="billing-tab" data-bs-toggle="tab" data-bs-target="#billing" type="button">
+                <i class="fa-solid fa-receipt me-1"></i> Billing & Invoices ({{ bills|length }})
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="emrTabsContent">
+        <!-- Tab 1: Clinical SOAP Consultations -->
+        <div class="tab-pane fade show active" id="soap" role="tabpanel">
+            <div class="row g-4">
+                {% for note in clinical_notes %}
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-primary">{{ note.assessment_diagnosis }}</h5>
+                                <small class="text-muted font-monospace">ICD-10: {{ note.assessment_icd10_code|default:"Unspecified" }} | Dr. {{ note.doctor.user.get_full_name|default:note.doctor.user.username }}</small>
+                            </div>
+                            <span class="badge bg-secondary font-monospace">{{ note.created_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Vitals Strip -->
+                            <div class="row g-2 mb-3 text-center text-xs">
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">BP</div><strong>{{ note.blood_pressure_systolic }}/{{ note.blood_pressure_diastolic }}</strong></div></div>
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">PULSE</div><strong>{{ note.heart_rate_bpm }} bpm</strong></div></div>
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">TEMP</div><strong>{{ note.temperature_f }}°F</strong></div></div>
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">SPO2</div><strong>{{ note.spo2_percentage }}%</strong></div></div>
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">RESP</div><strong>{{ note.respiratory_rate }}/min</strong></div></div>
+                                <div class="col-2"><div class="p-2 bg-light rounded"><div class="text-muted">WEIGHT</div><strong>{{ note.weight_kg }} kg</strong></div></div>
+                            </div>
+
+                            <div class="row g-3 text-xs">
+                                <div class="col-md-6">
+                                    <strong class="text-primary text-uppercase">Subjective (Symptoms):</strong>
+                                    <p class="mb-2 text-muted">{{ note.subjective_symptoms }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-primary text-uppercase">Objective (Exam):</strong>
+                                    <p class="mb-2 text-muted">{{ note.objective_exam }}</p>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-2 mt-2 text-xs">
+                                <strong class="text-success text-uppercase">Treatment Plan & Advice:</strong>
+                                <p class="mb-0 text-muted">{{ note.treatment_plan }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fa-solid fa-stethoscope fa-3x mb-2 text-black-50"></i>
+                    <p>No clinical consultation encounters recorded for this patient.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tab 2: Prescriptions -->
+        <div class="tab-pane fade" id="rx" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Rx #</th>
+                                    <th>Date</th>
+                                    <th>Prescribed Medication</th>
+                                    <th>Dosage & Frequency</th>
+                                    <th>Duration</th>
+                                    <th>Instructions</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rx in prescriptions %}
+                                    {% for item in rx.medications.all %}
+                                    <tr>
+                                        <td><strong class="font-monospace text-primary">{{ rx.prescription_number|slice:":8" }}</strong></td>
+                                        <td>{{ rx.created_at|date:"d/m/Y" }}</td>
+                                        <td><strong>{{ item.medicine_name }}</strong></td>
+                                        <td>{{ item.dosage_strength }} ({{ item.get_frequency_display }})</td>
+                                        <td>{{ item.duration_days }} days (Qty: {{ item.quantity_prescribed }})</td>
+                                        <td>{{ item.get_food_instruction_display }}</td>
+                                        <td><span class="badge bg-success">{{ rx.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No prescriptions issued yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Lab Reports -->
+        <div class="tab-pane fade" id="labs" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Diagnostic Test Name</th>
+                                    <th>Sample Type</th>
+                                    <th>Findings / Impression</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lab in lab_orders %}
+                                <tr>
+                                    <td><strong class="font-monospace text-primary">{{ lab.order_number|slice:":8" }}</strong></td>
+                                    <td>{{ lab.created_at|date:"d/m/Y" }}</td>
+                                    <td><strong>{{ lab.test_name }}</strong></td>
+                                    <td><span class="badge bg-light text-dark border">{{ lab.get_sample_type_display }}</span></td>
+                                    <td>{{ lab.result_summary|default:"Pending lab specimen processing" }}</td>
+                                    <td class="text-center"><span class="badge bg-info">{{ lab.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No diagnostic lab orders recorded.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Inpatient Admissions -->
+        <div class="tab-pane fade" id="ipd" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Admission #</th>
+                                    <th>Admit Date</th>
+                                    <th>Ward / Room</th>
+                                    <th>Physician</th>
+                                    <th>Reason for Admission</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for adm in admissions %}
+                                <tr>
+                                    <td><strong class="font-monospace text-primary">{{ adm.admission_number|slice:":8" }}</strong></td>
+                                    <td>{{ adm.admission_date|date:"M d, Y H:i" }}</td>
+                                    <td>{{ adm.get_ward_type_display }} ({{ adm.room_number }} - {{ adm.bed_number }})</td>
+                                    <td>Dr. {{ adm.admitting_doctor.user.last_name }}</td>
+                                    <td>{{ adm.admission_reason }}</td>
+                                    <td><span class="badge bg-warning text-dark">{{ adm.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No inpatient hospital stays on record.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Billing & Invoices -->
+        <div class="tab-pane fade" id="billing" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bill #</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th class="text-end">Insurance Coverage</th>
+                                    <th class="text-end">Patient Co-Pay</th>
+                                    <th class="text-end">Grand Total</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bill in bills %}
+                                <tr>
+                                    <td><strong class="font-monospace text-primary">{{ bill.bill_number|slice:":8" }}</strong></td>
+                                    <td>{{ bill.created_at|date:"d/m/Y" }}</td>
+                                    <td class="text-end font-monospace">${{ bill.subtotal|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace text-success">-${{ bill.insurance_covered_amount|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace fw-bold text-primary">${{ bill.patient_co_pay|floatformat:2|intcomma }}</td>
+                                    <td class="text-end font-monospace fw-bold">${{ bill.grand_total|floatformat:2|intcomma }}</td>
+                                    <td class="text-center"><span class="badge bg-success">{{ bill.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No medical bills generated yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
