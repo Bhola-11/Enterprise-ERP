@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-people me-2 text-primary"></i>Subcontractors & Job Workers</h1>
+            <p class="text-muted mb-0">External machining centers, surface treatment facilities and assembly partners.</p>
+        </div>
+        <a href="{% url 'subcontracting:vendor_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Register Vendor</a>
+    </div>
+
+    <div class="row g-3">
+        {% for v in vendors %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-primary mb-0">{{ v.name }}</h5>
+                        <span class="badge bg-secondary">{{ v.code }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>{{ v.facility_address }}</div>
+                    <div class="small mb-2"><i class="bi bi-person me-1"></i>Contact: {{ v.contact_person|default:"Operations Desk" }}</div>
+                    <div class="small mb-3"><i class="bi bi-tools me-1"></i><strong>Capabilities:</strong> {{ v.toll_processing_types }}</div>
+                    <div class="bg-light p-2 rounded small">Active Orders: <strong>{{ v.orders_count }}</strong></div>
+                </div>
+                <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                    <span class="badge {% if v.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if v.is_active %}Approved Partner{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">No subcontracting vendors registered yet.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Create a work order for outsourced job work or toll processing.</p>
+        </div>
+        <a href="{% url 'subcontracting:order_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Orders
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Subcontractor Partner *</label>
+                        {{ form.subcontractor }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Target Finished Goods Item *</label>
+                        {{ form.finished_product }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Operation / Job Work Description *</label>
+                        {{ form.operation_description }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Planned Finished Quantity *</label>
+                        {{ form.planned_quantity }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Unit Processing / Toll Rate ($) *</label>
+                        {{ form.unit_processing_rate }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Delivery Warehouse *</label>
+                        {{ form.delivery_warehouse }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Order Issue Date *</label>
+                        {{ form.order_date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Expected Completion / Delivery Date *</label>
+                        {{ form.expected_delivery_date }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Work Order Instructions / Scope of Work</label>
+                        {{ form.instructions }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'subcontracting:order_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Create Subcontract Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

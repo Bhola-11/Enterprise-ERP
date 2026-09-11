@@ -1,0 +1,229 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">Subcontract Order: {{ order.order_number }}</h1>
+                {% if order.status == 'COMPLETED' %}
+                    <span class="badge bg-success">Completed</span>
+                {% elif order.status == 'IN_PROCESSING' %}
+                    <span class="badge bg-primary">In Processing</span>
+                {% elif order.status == 'MATERIALS_DISPATCHED' %}
+                    <span class="badge bg-info text-dark">Dispatched</span>
+                {% elif order.status == 'PARTIALLY_RECEIVED' %}
+                    <span class="badge bg-warning text-dark">Partially Received</span>
+                {% elif order.status == 'CANCELLED' %}
+                    <span class="badge bg-danger">Cancelled</span>
+                {% else %}
+                    <span class="badge bg-secondary">Draft</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">Job Work Order with {{ order.subcontractor.name }} ({{ order.subcontractor.code }})</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'subcontracting:order_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> All Orders
+            </a>
+            <a href="{% url 'subcontracting:dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line me-1"></i> Subcontract Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- Order Metadata Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Target Finished Goods</span>
+                    <h5 class="fw-bold mt-1 text-dark mb-0">{{ order.finished_product.name }}</h5>
+                    <small class="text-secondary">SKU: {{ order.finished_product.sku }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Planned Quantity</span>
+                    <h4 class="fw-bold mt-1 text-primary mb-0">{{ order.planned_quantity }} <small class="text-muted">units</small></h4>
+                    <small class="text-success">Received so far: {{ order.received_quantity }} units</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Toll Rate & Cost</span>
+                    <h4 class="fw-bold mt-1 text-success mb-0">${{ order.total_service_cost }}</h4>
+                    <small class="text-muted">Rate: ${{ order.unit_processing_rate }}/unit</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Key Dates</span>
+                    <div class="small mt-1"><strong>Issued:</strong> {{ order.order_date|date:"Y-m-d" }}</div>
+                    <div class="small text-danger"><strong>Due:</strong> {{ order.expected_delivery_date|date:"Y-m-d" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Material Dispatches & Receipts -->
+        <div class="col-lg-8">
+            <!-- Raw Material Dispatches (Delivery Challans) -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-dolly me-2 text-primary"></i>Raw Material Dispatches (Outbound Challans)</h5>
+                    <span class="badge bg-primary">{{ dispatches.count }} Dispatches</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Challan #</th>
+                                    <th>Raw Material Item</th>
+                                    <th>Source Warehouse</th>
+                                    <th class="text-end">Qty Dispatched</th>
+                                    <th class="text-center">Dispatch Date</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in dispatches %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ d.challan_number }}</td>
+                                    <td>
+                                        <div class="fw-semibold">{{ d.raw_material.name }}</div>
+                                        <small class="text-muted">{{ d.raw_material.sku }}</small>
+                                    </td>
+                                    <td>{{ d.source_warehouse.name|default:"Main Warehouse" }}</td>
+                                    <td class="text-end fw-bold">{{ d.quantity_dispatched }} {{ d.raw_material.unit_of_measure|default:"units" }}</td>
+                                    <td class="text-center">{{ d.dispatch_date|date:"Y-m-d" }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">Dispatched</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="fas fa-boxes-packing fa-2x mb-2 d-block text-secondary opacity-50"></i>
+                                        No material dispatch challans recorded yet.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finished Goods Receipts (SGRN) -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-boxes-stacked me-2 text-success"></i>Finished Goods Receipts & Yield Log</h5>
+                    <span class="badge bg-success">{{ receipts.count }} Receipts</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Receipt # (SGRN)</th>
+                                    <th>Vendor Ref</th>
+                                    <th class="text-end">Qty Accepted</th>
+                                    <th class="text-end">Qty Rejected</th>
+                                    <th class="text-end">Scrap Reported</th>
+                                    <th class="text-center">Receipt Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in receipts %}
+                                <tr>
+                                    <td class="fw-bold text-success">{{ r.receipt_number }}</td>
+                                    <td><code>{{ r.vendor_delivery_note_ref|default:"-" }}</code></td>
+                                    <td class="text-end fw-bold text-success">{{ r.quantity_received }}</td>
+                                    <td class="text-end fw-bold text-danger">{{ r.quantity_rejected }}</td>
+                                    <td class="text-end fw-bold text-warning">{{ r.scrap_material_reported }}</td>
+                                    <td class="text-center">{{ r.receipt_date|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        No receipts recorded yet. Use the form on the right to receive finished items.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Receive Finished Goods Form & Subcontractor Details -->
+        <div class="col-lg-4">
+            <!-- Receive Finished Goods Action Box -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-check-circle me-2"></i>Receive Subcontract Goods (SGRN)</h6>
+                </div>
+                <div class="card-body">
+                    {% if order.status == 'COMPLETED' %}
+                        <div class="alert alert-success mb-0">
+                            <i class="fas fa-check-double me-2"></i>This subcontract order has been fully received and completed.
+                        </div>
+                    {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Quantity Received (Accepted) *</label>
+                                {{ receipt_form.quantity_received }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Quantity Rejected</label>
+                                {{ receipt_form.quantity_rejected }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Scrap Material Reported</label>
+                                {{ receipt_form.scrap_material_reported }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Vendor Delivery Note / Invoice Ref</label>
+                                {{ receipt_form.vendor_delivery_note_ref }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Receipt Remarks / Inspection Notes</label>
+                                {{ receipt_form.remarks }}
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 py-2">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Post Goods Receipt & GL Entry
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subcontractor Vendor Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-building me-2 text-secondary"></i>Subcontractor Details</h6>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold text-dark">{{ order.subcontractor.name }}</h5>
+                    <p class="text-muted small mb-2"><i class="fas fa-barcode me-2"></i>Code: {{ order.subcontractor.code }}</p>
+                    <p class="text-muted small mb-2"><i class="fas fa-envelope me-2"></i>Email: {{ order.subcontractor.email|default:"N/A" }}</p>
+                    <p class="text-muted small mb-2"><i class="fas fa-phone me-2"></i>Phone: {{ order.subcontractor.phone|default:"N/A" }}</p>
+                    <p class="text-muted small mb-0"><i class="fas fa-location-dot me-2"></i>Address: {{ order.subcontractor.address|default:"N/A" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
