@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i>Commercial Rent Roll Report</h1>
+            <p class="text-muted mb-0">Complete active lease roll, monthly recurring revenue (MRR) and annual financial yield.</p>
+        </div>
+        <a href="{% url 'real_estate_pms:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to PMS</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm p-3">
+                <div class="small text-uppercase">Monthly Base Rent Roll</div>
+                <div class="h3 fw-bold">${{ total_monthly_roll }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow-sm p-3">
+                <div class="small text-uppercase">Monthly CAM Inflow</div>
+                <div class="h3 fw-bold">${{ total_cam_roll }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm p-3">
+                <div class="small text-uppercase">Projected Annual Gross Yield</div>
+                <div class="h3 fw-bold">${{ total_annual_revenue }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lease #</th>
+                            <th>Building & Suite</th>
+                            <th>Tenant Company</th>
+                            <th>Area (Sq Ft)</th>
+                            <th>Base Monthly</th>
+                            <th>CAM Fee</th>
+                            <th>Escalation</th>
+                            <th>Term Expiry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in leases %}
+                        <tr>
+                            <td><strong>{{ l.lease_number }}</strong></td>
+                            <td>{{ l.unit.complex.name }} - {{ l.unit.unit_number }}</td>
+                            <td class="fw-bold">{{ l.tenant.company_or_name }}</td>
+                            <td>{{ l.unit.square_feet }} sq ft</td>
+                            <td>${{ l.monthly_rent }}</td>
+                            <td>${{ l.cam_fee_monthly }}</td>
+                            <td>{{ l.annual_escalation_pct }}%</td>
+                            <td>{{ l.end_date|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No active leases on the rent roll.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-buildings me-2 text-primary"></i>Real Estate & Commercial PMS Hub</h1>
+            <p class="text-muted mb-0">Lease Portfolio Management, Escalation Schedules, CAM Invoicing & Facility Work Orders.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'real_estate_pms:rent_roll_report' %}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Rent Roll</a>
+            <a href="{% url 'real_estate_pms:lease_create' %}" class="btn btn-primary shadow-sm"><i class="bi bi-file-earmark-plus me-1"></i>Draft Lease</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Properties / Units</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ total_properties }} Bldgs / {{ total_units }} Units</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-info border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Occupancy Rate</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ occupancy_pct }}% ({{ occupied_units }} Leased)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Rent Collected</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">${{ total_rent_collected }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-danger border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Open Maintenance WOs</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ open_work_orders }} Orders</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-file-earmark-text me-1"></i>Active Commercial Leases</h6>
+            <a href="{% url 'real_estate_pms:lease_list' %}" class="btn btn-sm btn-outline-primary">View All Leases</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lease #</th>
+                            <th>Property & Unit</th>
+                            <th>Tenant</th>
+                            <th>Term Period</th>
+                            <th>Monthly Rent</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in recent_leases %}
+                        <tr>
+                            <td><a href="{% url 'real_estate_pms:lease_detail' l.id %}" class="fw-bold">{{ l.lease_number }}</a></td>
+                            <td>{{ l.unit.complex.name }} - <strong>{{ l.unit.unit_number }}</strong></td>
+                            <td>{{ l.tenant.company_or_name }}</td>
+                            <td><small>{{ l.start_date|date:"M Y" }} - {{ l.end_date|date:"M Y" }}</small></td>
+                            <td class="fw-bold text-primary">${{ l.monthly_rent }}</td>
+                            <td><span class="badge bg-success">{{ l.get_status_display }}</span></td>
+                            <td><a href="{% url 'real_estate_pms:lease_detail' l.id %}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Details</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No leases registered yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

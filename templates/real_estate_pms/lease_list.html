@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Lease Agreements</h1>
+            <p class="text-muted mb-0">Commercial tenant contracts, lease terms and billing schedules.</p>
+        </div>
+        <a href="{% url 'real_estate_pms:lease_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Draft Lease</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lease #</th>
+                            <th>Unit & Complex</th>
+                            <th>Tenant</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Monthly Rent</th>
+                            <th>Escalation</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in leases %}
+                        <tr>
+                            <td><a href="{% url 'real_estate_pms:lease_detail' l.id %}" class="fw-bold">{{ l.lease_number }}</a></td>
+                            <td>{{ l.unit.complex.name }} - <strong>{{ l.unit.unit_number }}</strong></td>
+                            <td>{{ l.tenant.company_or_name }}</td>
+                            <td>{{ l.start_date|date:"d M Y" }}</td>
+                            <td>{{ l.end_date|date:"d M Y" }}</td>
+                            <td class="fw-bold text-primary">${{ l.monthly_rent }}</td>
+                            <td>{{ l.annual_escalation_pct }}% / yr</td>
+                            <td><span class="badge {% if l.status == 'ACTIVE' %}bg-success{% elif l.status == 'DRAFT' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ l.get_status_display }}</span></td>
+                            <td><a href="{% url 'real_estate_pms:lease_detail' l.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Details</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="text-center py-4 text-muted">No leases found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

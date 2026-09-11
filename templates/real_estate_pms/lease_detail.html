@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0 text-gray-800">Lease: {{ lease.lease_number }}</h1>
+                <span class="badge bg-success">{{ lease.get_status_display }}</span>
+            </div>
+            <p class="text-muted mb-0">{{ lease.unit.complex.name }} | Suite {{ lease.unit.unit_number }} | Tenant: <strong>{{ lease.tenant.company_or_name }}</strong></p>
+        </div>
+        <a href="{% url 'real_estate_pms:lease_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Leases</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-card-checklist me-1"></i>Lease Financial Terms</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Monthly Base Rent:</span>
+                            <span class="fw-bold text-primary">${{ lease.monthly_rent }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">CAM Monthly Fee:</span>
+                            <span>${{ lease.cam_fee_monthly }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Security Deposit:</span>
+                            <span>${{ lease.security_deposit_held }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Annual Escalation:</span>
+                            <span>{{ lease.annual_escalation_pct }}%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-receipt me-1"></i>Rent Invoices & Payment Ledger</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Period</th>
+                                    <th>Total Billed</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for inv in invoices %}
+                                <tr>
+                                    <td><strong>{{ inv.invoice_number }}</strong></td>
+                                    <td>{{ inv.period_start|date:"d M" }} - {{ inv.period_end|date:"d M Y" }}</td>
+                                    <td class="fw-bold">${{ inv.total_amount }}</td>
+                                    <td class="text-success">${{ inv.paid_amount }}</td>
+                                    <td class="fw-bold text-danger">${{ inv.balance_amount }}</td>
+                                    <td><span class="badge {% if inv.status == 'PAID' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ inv.get_status_display }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-4 text-muted">No rent invoices issued yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

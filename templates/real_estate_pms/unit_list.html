@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-grid-3x3 me-2 text-primary"></i>Property Units & Suites</h1>
+            <p class="text-muted mb-0">Floor spaces, office suites, square footages and rental tariff status.</p>
+        </div>
+        <a href="{% url 'real_estate_pms:unit_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Unit</a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-md-5">
+                    <select name="complex" class="form-select">
+                        <option value="">All Properties / Buildings</option>
+                        {% for c in complexes %}
+                        <option value="{{ c.id }}" {% if selected_complex == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select name="status" class="form-select">
+                        <option value="">All Occupancy Statuses</option>
+                        <option value="VACANT" {% if selected_status == 'VACANT' %}selected{% endif %}>Vacant / Ready</option>
+                        <option value="LEASED" {% if selected_status == 'LEASED' %}selected{% endif %}>Leased / Occupied</option>
+                        <option value="UNDER_MAINTENANCE" {% if selected_status == 'UNDER_MAINTENANCE' %}selected{% endif %}>Under Renovation</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+                    <a href="{% url 'real_estate_pms:unit_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Unit #</th>
+                            <th>Building</th>
+                            <th>Floor</th>
+                            <th>Type</th>
+                            <th>Area (Sq Ft)</th>
+                            <th>Base Rent</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in units %}
+                        <tr>
+                            <td class="fw-bold">{{ u.unit_number }}</td>
+                            <td>{{ u.complex.name }}</td>
+                            <td>Floor {{ u.floor_number }}</td>
+                            <td><span class="badge bg-secondary">{{ u.get_unit_type_display }}</span></td>
+                            <td>{{ u.square_feet }} sq ft</td>
+                            <td class="fw-bold text-primary">${{ u.base_monthly_rent }}/mo</td>
+                            <td>
+                                <span class="badge {% if u.occupancy_status == 'LEASED' %}bg-success{% elif u.occupancy_status == 'VACANT' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ u.get_occupancy_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No units found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

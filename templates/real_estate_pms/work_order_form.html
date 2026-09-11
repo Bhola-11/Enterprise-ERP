@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-wrench me-2 text-primary"></i>{{ page_title }}</h1>
+            <p class="text-muted mb-0">Dispatch vendor or in-house technician for building maintenance.</p>
+        </div>
+        <a href="{% url 'real_estate_pms:work_order_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Unit *</label>
+                        {{ form.unit }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tenant</label>
+                        {{ form.tenant }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Issue Title *</label>
+                        {{ form.issue_title }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Problem Description *</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Category</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Priority</label>
+                        {{ form.priority }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Estimated Cost ($)</label>
+                        {{ form.estimated_cost }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Assigned Technician / Vendor</label>
+                        {{ form.assigned_technician }}
+                    </div>
+                    <div class="col-12 mt-4 d-flex justify-content-end gap-2">
+                        <a href="{% url 'real_estate_pms:work_order_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-circle me-1"></i>Submit Work Order</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

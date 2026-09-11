@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-buildings me-2 text-primary"></i>Property Portfolios</h1>
+            <p class="text-muted mb-0">Commercial towers, multi-family residential assets, retail plazas and industrial parks.</p>
+        </div>
+        <a href="{% url 'real_estate_pms:unit_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Unit / Suite</a>
+    </div>
+
+    <div class="row g-3">
+        {% for c in complexes %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-primary mb-0">{{ c.name }}</h5>
+                        <span class="badge bg-secondary">{{ c.code }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted mb-2">Type: <strong>{{ c.get_property_type_display }}</strong></div>
+                    <div class="small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ c.address }}, {{ c.city }}</div>
+                    <div class="small mb-2"><i class="bi bi-layers me-1"></i>Floors: {{ c.total_floors }}</div>
+                    <div class="small mb-3"><i class="bi bi-person me-1"></i>Manager: {{ c.manager_name|default:"Asset Manager" }}</div>
+                    <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                        <small>Total Units: <strong>{{ c.unit_count }}</strong></small>
+                        <small>Active Leases: <strong class="text-success">{{ c.active_leases_count }}</strong></small>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{% url 'real_estate_pms:unit_list' %}?complex={{ c.id }}" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-grid-3x3-gap me-1"></i>View Units</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">No properties found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
