@@ -155,6 +155,33 @@
                         </a>
                     </li>
 
+                    <li class="sidebar-heading">Vertical Industry Suites</li>
+                    <li class="nav-item">
+                        <a href="{% url 'healthcare:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'healthcare' %}active{% endif %}">
+                            <i class="fa-solid fa-hospital-user"></i> Healthcare & Hospital EMR
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'logistics_3pl:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'logistics_3pl' %}active{% endif %}">
+                            <i class="fa-solid fa-plane-departure"></i> Global Logistics & 3PL
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'education_sis:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'education_sis' %}active{% endif %}">
+                            <i class="fa-solid fa-graduation-cap"></i> Higher Education & SIS
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'real_estate_pms:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'real_estate_pms' %}active{% endif %}">
+                            <i class="fa-solid fa-building"></i> Real Estate & PMS
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'hospitality_pms:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'hospitality_pms' %}active{% endif %}">
+                            <i class="fa-solid fa-hotel"></i> Hotel & Hospitality PMS
+                        </a>
+                    </li>
+
                     <li class="sidebar-heading">Administration & Governance</li>
                     <li class="nav-item">
                         <a href="{% url 'accounts:user_list' %}" class="nav-link {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'user_list' %}active{% endif %}">

@@ -59,6 +59,11 @@ INSTALLED_APPS = [
     'pos.apps.PosConfig',
     'taxation.apps.TaxationConfig',
     'reconciliation.apps.ReconciliationConfig',
+    'healthcare.apps.HealthcareConfig',
+    'logistics_3pl.apps.Logistics3plConfig',
+    'education_sis.apps.EducationSisConfig',
+    'real_estate_pms.apps.RealEstatePmsConfig',
+    'hospitality_pms.apps.HospitalityPmsConfig',
 ]
 
 MIDDLEWARE = [

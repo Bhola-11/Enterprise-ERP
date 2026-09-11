@@ -51,6 +51,11 @@ urlpatterns = [
     path('pos/', include('pos.urls', namespace='pos')),
     path('taxation/', include('taxation.urls', namespace='taxation')),
     path('reconciliation/', include('reconciliation.urls', namespace='reconciliation')),
+    path('healthcare/', include('healthcare.urls', namespace='healthcare')),
+    path('logistics/', include('logistics_3pl.urls', namespace='logistics_3pl')),
+    path('education/', include('education_sis.urls', namespace='education_sis')),
+    path('real-estate/', include('real_estate_pms.urls', namespace='real_estate_pms')),
+    path('hospitality/', include('hospitality_pms.urls', namespace='hospitality_pms')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

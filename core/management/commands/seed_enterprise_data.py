@@ -1,3 +1,25 @@
+from healthcare.models import (
+    MedicalDepartment, PractitionerDoctor, PatientRecord, AppointmentSchedule,
+    ClinicalConsultationNote, PrescriptionOrder, PrescriptionMedicationItem,
+    LaboratoryTestOrder, InpatientAdmission, MedicalBillingInvoice
+)
+from logistics_3pl.models import (
+    ShippingCarrier, FreightRateMatrix, FreightConsignment,
+    FreightConsignmentItem, TransitMilestoneCheckpoint, FreightShippingInvoice
+)
+from education_sis.models import (
+    DepartmentFaculty, AcademicProgram, AcademicSession, StudentProfile,
+    CourseModule, CourseEnrollment, FeeStructure, StudentFeeInvoice
+)
+from real_estate_pms.models import (
+    PropertyComplex, PropertyUnit, PropertyTenant, LeaseAgreement,
+    TenantRentInvoice, MaintenanceWorkOrder
+)
+from hospitality_pms.models import (
+    RoomType, HotelRoom, GuestProfile, RoomReservation,
+    GuestFolioInvoice, FolioChargeLine, HousekeepingTask
+)
+
 import os
 from decimal import Decimal
 from datetime import date, timedelta
@@ -818,5 +840,158 @@ class Command(BaseCommand):
                 'is_active': True
             }
         )
+
+        
+        # 21. Healthcare & Hospital Information System (HIS/EMR)
+        doc_user1, _ = User.objects.get_or_create(username='dr_mercer', defaults={'email': 'r.mercer@hospital.nexora.io', 'role': 'DOCTOR', 'first_name': 'Robert', 'last_name': 'Mercer'})
+        doc_user1.set_password('Password123!')
+        doc_user1.save()
+
+        doc_user2, _ = User.objects.get_or_create(username='dr_thorne', defaults={'email': 'a.thorne@hospital.nexora.io', 'role': 'DOCTOR', 'first_name': 'Aris', 'last_name': 'Thorne'})
+        doc_user2.set_password('Password123!')
+        doc_user2.save()
+
+        med_cardio, _ = MedicalDepartment.objects.get_or_create(code='CARDIO', defaults={'name': 'Cardiology & Vascular Institute', 'head_physician': 'Dr. Robert Mercer, MD', 'floor_location': 'Building B, 3rd Floor'})
+        med_neuro, _ = MedicalDepartment.objects.get_or_create(code='NEURO', defaults={'name': 'Neurology & Neurosurgery', 'head_physician': 'Dr. Aris Thorne, MD', 'floor_location': 'Building B, 4th Floor'})
+
+        doc_mercer, _ = PractitionerDoctor.objects.get_or_create(user=doc_user1, defaults={'license_number': 'MD-NY-99482', 'specialization': 'Interventional Cardiology', 'department': med_cardio, 'consultation_fee': Decimal('250.00'), 'is_active': True})
+        doc_thorne, _ = PractitionerDoctor.objects.get_or_create(user=doc_user2, defaults={'license_number': 'MD-NY-11029', 'specialization': 'Neurovascular Surgery', 'department': med_neuro, 'consultation_fee': Decimal('300.00'), 'is_active': True})
+
+        pat_john, _ = PatientRecord.objects.get_or_create(patient_mrn='MRN-2026-0001', defaults={'first_name': 'Jonathan', 'last_name': 'Holloway', 'date_of_birth': date(1982, 4, 12), 'gender': 'MALE', 'blood_group': 'O+', 'email': 'j.holloway@gmail.com', 'phone': '+1-555-8833', 'emergency_contact_name': 'Sarah Holloway', 'emergency_contact_phone': '+1-555-8834', 'allergy_notes': 'Penicillin (Anaphylaxis risk)'})
+        pat_elena, _ = PatientRecord.objects.get_or_create(patient_mrn='MRN-2026-0002', defaults={'first_name': 'Elena', 'last_name': 'Gomez', 'date_of_birth': date(1991, 8, 24), 'gender': 'FEMALE', 'blood_group': 'A+', 'email': 'elena.gomez@outlook.com', 'phone': '+1-555-9922', 'emergency_contact_name': 'Carlos Gomez', 'emergency_contact_phone': '+1-555-9923', 'allergy_notes': 'None known'})
+
+        apt1, _ = AppointmentSchedule.objects.get_or_create(appointment_number='APT-2026-0001', defaults={'patient': pat_john, 'doctor': doc_mercer, 'department': med_cardio, 'scheduled_time': timezone.now() - timedelta(hours=3), 'chief_complaint': 'Post-infarct cardiovascular checkup', 'status': 'COMPLETED'})
+        apt2, _ = AppointmentSchedule.objects.get_or_create(appointment_number='APT-2026-0002', defaults={'patient': pat_elena, 'doctor': doc_thorne, 'department': med_neuro, 'scheduled_time': timezone.now() + timedelta(days=1), 'chief_complaint': 'Migraine aura neurological evaluation', 'status': 'SCHEDULED'})
+
+        note1, _ = ClinicalConsultationNote.objects.get_or_create(appointment=apt1, defaults={'doctor': doc_mercer, 'patient': pat_john, 'subjective_symptoms': 'Patient reports intermittent mild retrosternal tightness on heavy exertion.', 'objective_exam': 'BP: 128/82 mmHg, HR: 68 BPM. ECG reveals regular sinus rhythm, normal QRS.', 'assessment_diagnosis': 'Stable Coronary Artery Disease - NYHA Class I', 'treatment_plan': 'Continue Atorvastatin 40mg, Aspirin 81mg. Schedule echo Doppler.'})
+        LaboratoryTestOrder.objects.get_or_create(order_number='LAB-2026-0001', defaults={'patient': pat_john, 'doctor': doc_mercer, 'test_name': 'Comprehensive Lipid Panel & High-Sensitivity CRP', 'sample_type': 'BLOOD', 'status': 'COMPLETED'})
+
+        InpatientAdmission.objects.get_or_create(admission_number='IPD-2026-0001', defaults={'patient': pat_john, 'admitting_doctor': doc_mercer, 'ward_type': 'ICU', 'room_number': 'ICU-302', 'bed_number': 'Bed-A', 'admission_date': timezone.now() - timedelta(days=2), 'status': 'ADMITTED', 'admission_reason': 'Acute Coronary post-PCI monitoring'})
+        MedicalBillingInvoice.objects.get_or_create(bill_number='MED-2026-0001', defaults={'patient': pat_john, 'consultation_charges': Decimal('250.00'), 'lab_charges': Decimal('180.00'), 'pharmacy_charges': Decimal('95.00'), 'room_charges': Decimal('1200.00'), 'insurance_covered_amount': Decimal('1400.00'), 'patient_co_pay': Decimal('325.00'), 'grand_total': Decimal('1725.00'), 'status': 'PAID'})
+
+        # 22. Global Logistics, Freight Forwarding & 3PL
+        c_dhl, _ = ShippingCarrier.objects.get_or_create(code='DHL-GF', defaults={'name': 'DHL Global Forwarding', 'carrier_type': 'AIR', 'tracking_url_template': 'https://track.dhl.com?awb={tracking_number}', 'is_active': True})
+        c_maersk, _ = ShippingCarrier.objects.get_or_create(code='MAERSK', defaults={'name': 'A.P. Moller - Maersk Ocean Line', 'carrier_type': 'OCEAN', 'tracking_url_template': 'https://www.maersk.com/tracking/{tracking_number}', 'is_active': True})
+        c_fedex, _ = ShippingCarrier.objects.get_or_create(code='FEDEX-FRT', defaults={'name': 'FedEx Freight Multimodal', 'carrier_type': 'ROAD', 'tracking_url_template': 'https://www.fedex.com/track?id={tracking_number}', 'is_active': True})
+
+        FreightRateMatrix.objects.get_or_create(carrier=c_dhl, transport_mode='AIR', origin_zone='US-EAST (JFK)', destination_zone='EU-CENTRAL (FRA)', defaults={'rate_per_kg': Decimal('6.80'), 'minimum_charge': Decimal('85.00'), 'fuel_surcharge_percentage': Decimal('14.50'), 'security_surcharge_per_kg': Decimal('0.18'), 'is_active': True})
+        FreightRateMatrix.objects.get_or_create(carrier=c_maersk, transport_mode='OCEAN_FCL', origin_zone='US-PACIFIC (LAX/LGB)', destination_zone='ASIA-PACIFIC (SZX/HKG)', defaults={'rate_per_kg': Decimal('1.20'), 'minimum_charge': Decimal('1200.00'), 'fuel_surcharge_percentage': Decimal('18.00'), 'security_surcharge_per_kg': Decimal('0.05'), 'is_active': True})
+
+        frt1, _ = FreightConsignment.objects.get_or_create(
+            tracking_number='MAWB-020-88492011',
+            defaults={
+                'carrier': c_dhl,
+                'transport_mode': 'AIR_FREIGHT',
+                'incoterms': 'DDP',
+                'shipper_name': 'Quantum Silicon Technologies Inc.',
+                'shipper_address': '100 Silicon Way, San Jose, CA',
+                'shipper_city': 'San Jose',
+                'consignee_name': 'EuroTech Robotics GmbH',
+                'consignee_address': 'Industriestrasse 44, Frankfurt, Germany',
+                'consignee_city': 'Frankfurt',
+                'origin_hub': 'JFK International Cargo Terminal',
+                'destination_hub': 'FRA Cargo City South',
+                'actual_gross_weight_kg': Decimal('120.00'),
+                'volumetric_weight_kg': Decimal('150.00'),
+                'chargeable_weight_kg': Decimal('150.00'),
+                'total_volume_cbm': Decimal('0.750'),
+                'declared_customs_value': Decimal('45000.00'),
+                'status': 'IN_TRANSIT'
+            }
+        )
+        FreightConsignmentItem.objects.get_or_create(consignment=frt1, package_description='Precision Semiconductor Modules (HS 8542.31)', defaults={'package_type': 'CRATE', 'length_cm': Decimal('80.00'), 'width_cm': Decimal('60.00'), 'height_cm': Decimal('50.00'), 'gross_weight_kg': Decimal('120.00')})
+        TransitMilestoneCheckpoint.objects.get_or_create(consignment=frt1, status_title='Departed Linehaul Flight LH8221', defaults={'location_city': 'New York (JFK)', 'facility_name': 'JFK Lufthansa Cargo Gate 12', 'description': 'Cargo loaded on Boeing 777F flight to Frankfurt FRA.', 'timestamp': timezone.now() - timedelta(hours=6)})
+        FreightShippingInvoice.objects.get_or_create(consignment=frt1, defaults={'invoice_number': 'FRT-INV-2026-0001', 'base_freight_charge': Decimal('1020.00'), 'fuel_surcharge_amount': Decimal('147.90'), 'customs_brokerage_fee': Decimal('45.00'), 'origin_handling_fee': Decimal('25.00'), 'destination_handling_fee': Decimal('30.00'), 'insurance_fee': Decimal('675.00'), 'tax_amount': Decimal('97.15'), 'grand_total': Decimal('2040.05'), 'status': 'PENDING'})
+
+        # 23. Higher Education & Student Information System (SIS)
+        fac_cs, _ = DepartmentFaculty.objects.get_or_create(code='ENGR-CS', defaults={'name': 'Faculty of Computer Science & Engineering', 'dean_name': 'Prof. Gregory Vance, PhD', 'email': 'cs.dean@university.nexora.edu', 'building_location': 'Alan Turing Hall'})
+        fac_biz, _ = DepartmentFaculty.objects.get_or_create(code='MGMT-BUS', defaults={'name': 'Graduate School of Business & Analytics', 'dean_name': 'Prof. Evelyn Sterling, PhD', 'email': 'biz.dean@university.nexora.edu', 'building_location': 'Warren Buffett Pavilion'})
+
+        prog_bscs, _ = AcademicProgram.objects.get_or_create(code='BS-CS', defaults={'department': fac_cs, 'name': 'B.S. in Computer Science & Artificial Intelligence', 'degree_level': 'BACHELOR', 'duration_semesters': 8, 'total_credits_required': 128, 'tuition_per_semester': Decimal('6500.00')})
+        prog_mba, _ = AcademicProgram.objects.get_or_create(code='MBA-TECH', defaults={'department': fac_biz, 'name': 'Executive MBA in Technology Leadership', 'degree_level': 'MASTER', 'duration_semesters': 4, 'total_credits_required': 48, 'tuition_per_semester': Decimal('14000.00')})
+
+        sess_fall, _ = AcademicSession.objects.get_or_create(name='Academic Year 2026-2027 Fall', defaults={'term': 'FALL', 'start_date': date(2026, 9, 1), 'end_date': date(2026, 12, 20), 'is_active': True})
+
+        stu_lucas, _ = StudentProfile.objects.get_or_create(student_id='STU-2026-1001', defaults={'first_name': 'Lucas', 'last_name': 'Montgomery', 'email': 'lucas.m@university.nexora.edu', 'phone': '+1-555-7766', 'date_of_birth': date(2004, 3, 19), 'gender': 'MALE', 'program': prog_bscs, 'current_semester': 3, 'academic_status': 'ENROLLED', 'current_gpa': Decimal('3.85')})
+        stu_maya, _ = StudentProfile.objects.get_or_create(student_id='STU-2026-1002', defaults={'first_name': 'Maya', 'last_name': 'Lin', 'email': 'maya.lin@university.nexora.edu', 'phone': '+1-555-8811', 'date_of_birth': date(1998, 11, 5), 'gender': 'FEMALE', 'program': prog_mba, 'current_semester': 1, 'academic_status': 'ENROLLED', 'current_gpa': Decimal('4.00')})
+
+        crs_ds, _ = CourseModule.objects.get_or_create(code='CS301', defaults={'program': prog_bscs, 'title': 'Data Structures, Graph Algorithms & Complexity', 'credits': 4, 'semester_recommended': 3})
+        crs_ml, _ = CourseModule.objects.get_or_create(code='CS420', defaults={'program': prog_bscs, 'title': 'Deep Neural Architectures & LLM Engineering', 'credits': 4, 'semester_recommended': 4})
+
+        CourseEnrollment.objects.get_or_create(student=stu_lucas, course=crs_ds, session=sess_fall, defaults={'final_grade_letter': 'A', 'grade_point': Decimal('4.00'), 'attendance_percentage': Decimal('96.50'), 'status': 'ATTENDING'})
+        FeeStructure.objects.get_or_create(program=prog_bscs, session=sess_fall, fee_type='TUITION', defaults={'amount': Decimal('6500.00'), 'due_date': date(2026, 9, 15)})
+        StudentFeeInvoice.objects.get_or_create(invoice_number='SIS-INV-2026-1001', defaults={'student': stu_lucas, 'session': sess_fall, 'total_amount': Decimal('6500.00'), 'paid_amount': Decimal('6500.00'), 'balance_amount': Decimal('0.00'), 'status': 'PAID', 'due_date': date(2026, 9, 15), 'payment_method': 'ONLINE_PORTAL', 'transaction_reference': 'STRIPE-CHG-998811'})
+
+        # 24. Real Estate & Commercial Property Management System (PMS)
+        p_midtown, _ = PropertyComplex.objects.get_or_create(code='PROP-NYC-01', defaults={'name': 'Nexora Midtown Financial Tower', 'property_type': 'COMMERCIAL_OFFICE', 'address': '550 Madison Avenue', 'city': 'New York', 'state': 'NY', 'total_floors': 36, 'total_units_count': 72, 'manager_name': 'Victoria Davenport'})
+        p_residential, _ = PropertyComplex.objects.get_or_create(code='PROP-MIA-02', defaults={'name': 'Biscayne Bayfront Residences', 'property_type': 'RESIDENTIAL_APARTMENTS', 'address': '1800 Biscayne Boulevard', 'city': 'Miami', 'state': 'FL', 'total_floors': 24, 'total_units_count': 120, 'manager_name': 'Eduardo Santos'})
+
+        u_suite300, _ = PropertyUnit.objects.get_or_create(complex=p_midtown, unit_number='Suite 3000', defaults={'floor_number': 30, 'unit_type': 'OFFICE_SUITE', 'square_feet': Decimal('8500.00'), 'base_monthly_rent': Decimal('42500.00'), 'cam_fee_monthly': Decimal('4250.00'), 'security_deposit': Decimal('85000.00'), 'occupancy_status': 'LEASED', 'amenities': 'Corner executive suite, private boardroom, optical fiber, floor-to-ceiling glass'})
+        u_apt1204, _ = PropertyUnit.objects.get_or_create(complex=p_residential, unit_number='Apt 1204', defaults={'floor_number': 12, 'unit_type': 'APARTMENT_2BHK', 'square_feet': Decimal('1450.00'), 'base_monthly_rent': Decimal('4800.00'), 'cam_fee_monthly': Decimal('450.00'), 'security_deposit': Decimal('9600.00'), 'occupancy_status': 'VACANT', 'amenities': 'Oceanview balcony, Sub-Zero appliances, smart thermostat'})
+
+        t_vertex, _ = PropertyTenant.objects.get_or_create(email='leasing@vertexcapital.com', defaults={'company_or_name': 'Vertex Capital Management LP', 'contact_person': 'Arthur Sterling, Managing Partner', 'phone': '+1-212-555-7700', 'is_corporate': True})
+
+        l_vertex, _ = LeaseAgreement.objects.get_or_create(
+            lease_number='LSE-NYC-2026-001',
+            defaults={
+                'unit': u_suite300,
+                'tenant': t_vertex,
+                'start_date': date(2026, 1, 1),
+                'end_date': date(2031, 12, 31),
+                'monthly_rent': Decimal('42500.00'),
+                'cam_fee_monthly': Decimal('4250.00'),
+                'security_deposit_held': Decimal('85000.00'),
+                'annual_escalation_pct': Decimal('4.00'),
+                'payment_due_day': 1,
+                'status': 'ACTIVE'
+            }
+        )
+        TenantRentInvoice.objects.get_or_create(invoice_number='RENT-2026-09-001', defaults={'lease': l_vertex, 'period_start': date(2026, 9, 1), 'period_end': date(2026, 9, 30), 'base_rent': Decimal('42500.00'), 'cam_charges': Decimal('4250.00'), 'total_amount': Decimal('46750.00'), 'paid_amount': Decimal('46750.00'), 'balance_amount': Decimal('0.00'), 'status': 'PAID', 'due_date': date(2026, 9, 1)})
+        MaintenanceWorkOrder.objects.get_or_create(work_order_number='WO-2026-0044', defaults={'unit': u_suite300, 'tenant': t_vertex, 'issue_title': 'HVAC Zone 3 Temperature Calibration', 'description': 'Executive boardroom thermostat reading 76F despite setpoint 68F.', 'category': 'HVAC', 'priority': 'HIGH', 'status': 'COMPLETED', 'assigned_technician': 'Johnson Controls Inc.'})
+
+        # 25. Hospitality & Hotel Property Management System (PMS)
+        rt_ocean_king, _ = RoomType.objects.get_or_create(code='OCEAN-KING', defaults={'name': 'Panoramic Oceanfront King Suite', 'base_occupancy': 2, 'max_occupancy': 3, 'base_nightly_rate': Decimal('450.00'), 'amenities': 'Balcony, King Plush Bed, Nespresso, Jacuzzi, Ocean View'})
+        rt_pres_suite, _ = RoomType.objects.get_or_create(code='PRES-VILLA', defaults={'name': 'Presidential Penthouse Villa', 'base_occupancy': 4, 'max_occupancy': 6, 'base_nightly_rate': Decimal('1800.00'), 'amenities': 'Private Infinity Pool, Butler Service, 360 Sky Deck, Champagne Bar'})
+
+        rm_801, _ = HotelRoom.objects.get_or_create(room_number='801', defaults={'room_type': rt_ocean_king, 'floor': 8, 'status': 'OCCUPIED'})
+        rm_802, _ = HotelRoom.objects.get_or_create(room_number='802', defaults={'room_type': rt_ocean_king, 'floor': 8, 'status': 'AVAILABLE'})
+        rm_ph01, _ = HotelRoom.objects.get_or_create(room_number='PH-01', defaults={'room_type': rt_pres_suite, 'floor': 24, 'status': 'RESERVED'})
+
+        g_vanderbilt, _ = GuestProfile.objects.get_or_create(email='sophia.v@luxetravel.com', defaults={'first_name': 'Sophia', 'last_name': 'Vanderbilt', 'phone': '+1-305-555-9090', 'nationality': 'United States', 'vip_tier': 'PLATINUM', 'special_preferences': 'High floor, hypoallergenic pillows, sparkling water upon arrival'})
+
+        res_vanderbilt, _ = RoomReservation.objects.get_or_create(
+            confirmation_code='RES-HTL-2026-9001',
+            defaults={
+                'guest': g_vanderbilt,
+                'room_type': rt_ocean_king,
+                'room': rm_801,
+                'check_in_date': date.today() - timedelta(days=1),
+                'check_out_date': date.today() + timedelta(days=3),
+                'number_of_guests': 2,
+                'nightly_rate': Decimal('450.00'),
+                'total_room_charge': Decimal('1800.00'),
+                'deposit_paid': Decimal('450.00'),
+                'booking_source': 'DIRECT_DESK',
+                'status': 'CHECKED_IN',
+                'actual_check_in_time': timezone.now() - timedelta(days=1)
+            }
+        )
+        fol_vanderbilt, _ = GuestFolioInvoice.objects.get_or_create(
+            folio_number='FOL-RES-HTL-2026-9001',
+            defaults={
+                'reservation': res_vanderbilt,
+                'guest': g_vanderbilt,
+                'total_room_charges': Decimal('1800.00'),
+                'total_incidentals': Decimal('285.00'),
+                'tax_charges': Decimal('180.00'),
+                'total_amount': Decimal('2265.00'),
+                'paid_amount': Decimal('450.00'),
+                'balance_amount': Decimal('1815.00'),
+                'status': 'OPEN'
+            }
+        )
+        FolioChargeLine.objects.get_or_create(folio=fol_vanderbilt, description='Accommodation: 4 nights @ $450/night', defaults={'charge_type': 'ROOM_NIGHT', 'amount': Decimal('1800.00')})
+        FolioChargeLine.objects.get_or_create(folio=fol_vanderbilt, description='Room Service: Osetra Caviar & Dom Perignon', defaults={'charge_type': 'RESTAURANT', 'amount': Decimal('285.00')})
+        HousekeepingTask.objects.get_or_create(room=rm_802, task_type='STAY_OVER_CLEAN', defaults={'status': 'INSPECTED_CLEAN', 'assigned_housekeeper': 'Maria Gonzales', 'notes': 'Fresh linens, turndown amenities set'})
 
         self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 27 modules!'))
