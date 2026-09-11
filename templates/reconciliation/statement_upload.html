@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Statement - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-upload text-primary me-2"></i>Upload Bank Statement</h5>
+                    <a href="{% url 'reconciliation:statement_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Target Bank Account *</label>
+                            {{ form.bank_account }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">File Format Standard *</label>
+                            {{ form.statement_format }}
+                            <div class="form-text">Supports CSV, OFX (Quicken/MS Money), SWIFT MT940, and QIF formats.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Statement File Attachment *</label>
+                            {{ form.statement_file }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload & Run Auto-Reconciliation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

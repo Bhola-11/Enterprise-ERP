@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Reconciliation Workbench - {{ statement.bank_account.bank_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Header Bar -->
+    <div class="card shadow-sm border-0 mb-3 bg-white p-3">
+        <div class="row align-items-center">
+            <div class="col-md-5">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 text-primary p-2 rounded me-3">
+                        <i class="fa-solid fa-scale-unbalanced-flip fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0">{{ statement.bank_account.bank_name }}</h4>
+                        <span class="text-muted text-xs">Period: {{ statement.start_date|date:"M d, Y" }} &rarr; {{ statement.end_date|date:"M d, Y" }}</span>
+                        <span class="badge bg-secondary font-monospace ms-2">{{ statement.statement_format }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="text-xs text-muted mb-1">RECONCILIATION PROGRESS</div>
+                <div class="d-flex align-items-center justify-content-center">
+                    <div class="progress w-50 me-2" style="height: 10px;">
+                        {% widthratio statement.reconciled_lines_count statement.total_lines_count 100 as pct %}
+                        <div class="progress-bar {% if pct == '100' %}bg-success{% else %}bg-primary{% endif %}" style="width: {{ pct|default:0 }}%;"></div>
+                    </div>
+                    <strong class="font-monospace text-sm">{{ statement.reconciled_lines_count }} / {{ statement.total_lines_count }}</strong>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-outline-primary btn-sm me-1" id="autoReconBtn">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Run Match Rules
+                </button>
+                <a href="{% url 'reconciliation:statement_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace (2-Column Workbench) -->
+    <div class="row g-3">
+        <!-- Left: Statement Lines -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-list-check text-primary me-2"></i>Bank Statement Lines ({{ lines|length }})</h5>
+                    <span class="badge bg-light text-dark border">Feed Transactions</span>
+                </div>
+                <div class="card-body p-0" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0 text-xs">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Description / Reference</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-center">Status / Match</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in lines %}
+                            <tr class="{% if line.status == 'AUTO_MATCHED' or line.status == 'MANUALLY_MATCHED' %}table-success bg-opacity-10{% endif %}">
+                                <td class="font-monospace">{{ line.line_number }}</td>
+                                <td>{{ line.transaction_date|date:"d/m/y" }}</td>
+                                <td>
+                                    <div class="fw-medium text-truncate" style="max-width: 180px;" title="{{ line.raw_description }}">{{ line.raw_description }}</div>
+                                    {% if line.transaction_reference %}
+                                        <small class="text-muted font-monospace">Ref: {{ line.transaction_reference }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end font-monospace fw-bold {% if line.transaction_type == 'CREDIT' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if line.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}${{ line.amount|floatformat:2 }}
+                                </td>
+                                <td class="text-center">
+                                    {% if line.status == 'AUTO_MATCHED' %}
+                                        <span class="badge bg-success" title="{{ line.match_rule_applied }}">
+                                            <i class="fa-solid fa-check me-1"></i> {{ line.match_confidence_score }}% Matched
+                                        </span>
+                                    {% elif line.status == 'MANUALLY_MATCHED' %}
+                                        <span class="badge bg-primary">Manual</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Unmatched</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if line.status == 'UNMATCHED' %}
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary py-0 px-1 adjust-btn" 
+                                                data-id="{{ line.id }}" 
+                                                data-desc="{{ line.raw_description }}" 
+                                                data-amount="{{ line.amount }}" 
+                                                data-type="{{ line.transaction_type }}" 
+                                                title="Create Adjusting Entry (Fee / Interest)">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No transaction lines in this statement.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: General Ledger Candidates for Manual Pairing -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-book text-primary me-2"></i>GL Journal Ledger Candidates</h5>
+                    <small class="text-muted">Unreconciled General Ledger postings in this account</small>
+                </div>
+                <div class="card-body p-0" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+                    <div class="list-group list-group-flush text-xs">
+                        {% for ji in unmatched_gl_items %}
+                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="font-monospace text-primary">{{ ji.journal_entry.entry_number }}</strong>
+                                <span class="text-muted ms-2">({{ ji.journal_entry.entry_date|date:"d/m/Y" }})</span>
+                                <div class="text-muted text-truncate" style="max-width: 220px;">{{ ji.description|default:ji.journal_entry.description }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="font-monospace fw-bold {% if ji.debit > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {% if ji.debit > 0 %}+${{ ji.debit|floatformat:2 }}{% else %}-${{ ji.credit|floatformat:2 }}{% endif %}
+                                </div>
+                                <span class="badge bg-light text-dark border">{{ ji.account.name }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-check-double fa-2x mb-2 text-black-50"></i>
+                            <p class="mb-0">All general ledger items are balanced or no pending records.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-Adjustment Modal -->
+<div class="modal fade" id="adjustmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square me-2"></i>Post Adjusting Journal Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="adjLineId">
+                <div class="alert alert-light border mb-3">
+                    <div class="text-xs text-muted">STATEMENT LINE:</div>
+                    <strong id="adjLineDesc">Bank Service Charge</strong>
+                    <div class="h5 fw-bold text-danger mt-1 font-monospace" id="adjLineAmount">$0.00</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-xs">CONTRA GENERAL LEDGER ACCOUNT *</label>
+                    <select class="form-select" id="contraAccountSelect">
+                        {% for acc in contra_accounts %}
+                            <option value="{{ acc.id }}">{{ acc.code }} - {{ acc.name }} ({{ acc.get_account_type_display }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">e.g. Bank Charges & Fees, Interest Income, or Merchant Processing Fee.</div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary fw-bold py-2" id="submitAdjustmentBtn">
+                        <i class="fa-solid fa-check me-1"></i> Post Adjustment & Reconcile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statementId = {{ statement.id }};
+    const autoReconBtn = document.getElementById('autoReconBtn');
+    const adjustmentModal = new bootstrap.Modal(document.getElementById('adjustmentModal'));
+    const adjLineId = document.getElementById('adjLineId');
+    const adjLineDesc = document.getElementById('adjLineDesc');
+    const adjLineAmount = document.getElementById('adjLineAmount');
+    const contraAccountSelect = document.getElementById('contraAccountSelect');
+    const submitAdjustmentBtn = document.getElementById('submitAdjustmentBtn');
+
+    // 1. Run Auto-Reconciliation Pass
+    autoReconBtn.addEventListener('click', function() {
+        autoReconBtn.disabled = true;
+        autoReconBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Matching...';
+
+        fetch(`/reconciliation/api/statement/${statementId}/auto-reconcile/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Auto-reconciliation error.');
+            }
+        });
+    });
+
+    // 2. Open Adjusting Entry Modal
+    document.querySelectorAll('.adjust-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const desc = this.getAttribute('data-desc');
+            const amt = this.getAttribute('data-amount');
+            const type = this.getAttribute('data-type');
+
+            adjLineId.value = id;
+            adjLineDesc.innerText = desc;
+            adjLineAmount.innerText = (type === 'CREDIT' ? '+' : '-') + '$' + parseFloat(amt).toFixed(2);
+            adjustmentModal.show();
+        });
+    });
+
+    // 3. Post Adjustment
+    submitAdjustmentBtn.addEventListener('click', function() {
+        const lineId = adjLineId.value;
+        const contraId = contraAccountSelect.value;
+
+        submitAdjustmentBtn.disabled = true;
+        fetch(`/reconciliation/api/line/${lineId}/adjust/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({contra_account_id: contraId})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                adjustmentModal.hide();
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+                submitAdjustmentBtn.disabled = false;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

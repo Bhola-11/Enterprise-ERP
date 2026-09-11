@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Bank Statements & Reconciliation - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-building-columns text-primary me-2"></i>Bank Reconciliation & Statement Hub</h1>
+            <p class="text-muted mb-0">Multi-format bank feed parsers (MT940, OFX, CAMT.053, CSV, QIF) with intelligent automated reconciliation.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reconciliation:rule_list' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Match Rules
+            </a>
+            <a href="{% url 'reconciliation:statement_upload' %}" class="btn btn-primary">
+                <i class="fa-solid fa-upload me-1"></i> Upload Statement
+            </a>
+        </div>
+    </div>
+
+    <!-- Statements List Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bank Account</th>
+                            <th>Format</th>
+                            <th>Statement Period</th>
+                            <th class="text-center">Total Lines</th>
+                            <th class="text-center">Reconciled</th>
+                            <th style="width: 25%;">Reconciliation Progress</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Workbench</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stmt in statements %}
+                        <tr>
+                            <td>
+                                <strong>{{ stmt.bank_account.bank_name }}</strong>
+                                <div class="text-xs text-muted font-monospace">{{ stmt.bank_account.account_number }}</div>
+                            </td>
+                            <td><span class="badge bg-secondary font-monospace">{{ stmt.statement_format }}</span></td>
+                            <td>{{ stmt.start_date|date:"M d, Y" }} &rarr; {{ stmt.end_date|date:"M d, Y" }}</td>
+                            <td class="text-center font-monospace">{{ stmt.total_lines_count }}</td>
+                            <td class="text-center font-monospace fw-bold text-success">{{ stmt.reconciled_lines_count }}</td>
+                            <td>
+                                {% widthratio stmt.reconciled_lines_count stmt.total_lines_count 100 as pct %}
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar {% if pct == '100' %}bg-success{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ pct|default:0 }}%;"></div>
+                                    </div>
+                                    <span class="text-xs font-monospace">{{ pct|default:0 }}%</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% if stmt.status == 'RECONCILED' %}
+                                    <span class="badge bg-success">Reconciled</span>
+                                {% elif stmt.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning text-dark">In-Progress</span>
+                                {% else %}
+                                    <span class="badge bg-info">Imported</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'reconciliation:workbench' statement_id=stmt.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-table-columns me-1"></i> Workbench
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-building-columns fa-3x mb-2 text-black-50"></i>
+                                <p>No electronic bank statements uploaded yet.</p>
+                                <a href="{% url 'reconciliation:statement_upload' %}" class="btn btn-primary">
+                                    <i class="fa-solid fa-upload me-1"></i> Upload First Statement
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
