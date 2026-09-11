@@ -1,0 +1,102 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">{{ connector.name }}</h1>
+                {% if connector.sync_status == 'SUCCESS' %}
+                    <span class="badge bg-success">Healthy</span>
+                {% elif connector.sync_status == 'RUNNING' %}
+                    <span class="badge bg-primary">Syncing...</span>
+                {% elif connector.sync_status == 'ERROR' %}
+                    <span class="badge bg-danger">Error</span>
+                {% else %}
+                    <span class="badge bg-secondary">Idle</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">Adapter: {{ connector.get_connector_type_display }} | Auth: {{ connector.get_auth_type_display }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'integrations_sdk:marketplace' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Marketplace
+            </a>
+            <form method="POST" action="{% url 'integrations_sdk:connector_trigger_sync' connector.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-rotate me-1"></i> Trigger Instant Sync
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Entity Mappings</span>
+                    <h3 class="fw-bold text-primary mt-1 mb-0">{{ mappings.count }}</h3>
+                    <small class="text-muted">Bi-directional ID references</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Last Synchronization</span>
+                    <h4 class="fw-bold text-dark mt-1 mb-0">{{ connector.last_sync_at|date:"Y-m-d H:i:s"|default:"Never" }}</h4>
+                    <small class="text-muted">Interval: Every {{ connector.sync_interval_minutes }} mins</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Target Endpoint</span>
+                    <h6 class="fw-bold text-dark mt-1 mb-0 font-monospace">{{ connector.base_url|default:"Default SDK Cloud" }}</h6>
+                    <small class="text-muted">Status: {% if connector.is_active %}<span class="text-success fw-bold">Active</span>{% else %}<span class="text-muted">Disabled</span>{% endif %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapped Records Table -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-arrows-split-up-and-left me-2 text-primary"></i>Synchronized Entity Mappings</h5>
+            <span class="badge bg-primary">{{ mappings.count }} Records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 font-monospace small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Entity Type</th>
+                            <th>Local ID</th>
+                            <th>External System Reference ID</th>
+                            <th>Direction</th>
+                            <th class="text-end">Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in mappings %}
+                        <tr>
+                            <td class="fw-bold text-dark">{{ m.get_entity_type_display }}</td>
+                            <td>#{{ m.local_id }}</td>
+                            <td class="text-primary fw-bold">{{ m.external_reference_id }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ m.get_sync_direction_display }}</span></td>
+                            <td class="text-end text-muted">{{ m.last_sync_timestamp|date:"Y-m-d H:i:s" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No entities synced yet. Trigger a sync above!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

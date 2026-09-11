@@ -1,0 +1,62 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Connect external ERP, CRM, billing, or carrier systems to Nexora Enterprise.</p>
+        </div>
+        <a href="{% url 'integrations_sdk:marketplace' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Marketplace
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Connector Display Name *</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Target Platform / Connector Type *</label>
+                        {{ form.connector_type }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Authentication Scheme *</label>
+                        {{ form.auth_type }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Sync Interval (Minutes)</label>
+                        {{ form.sync_interval_minutes }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Base API URL Endpoint</label>
+                        {{ form.base_url }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Secret API Key / Auth Token</label>
+                        {{ form.api_key_or_token }}
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch mt-2">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-semibold ms-2">Enable Real-Time Integration</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'integrations_sdk:marketplace' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Save & Connect
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

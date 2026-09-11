@@ -1,0 +1,60 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Chronological history of external connector sync operations and payload transfers.</p>
+        </div>
+        <a href="{% url 'integrations_sdk:marketplace' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Integrations Marketplace
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 font-monospace small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Connector</th>
+                            <th>Sync Type</th>
+                            <th class="text-end">Processed</th>
+                            <th class="text-end">Failed</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Duration</th>
+                            <th>Execution Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="text-muted">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                            <td class="fw-bold text-primary">{{ log.connector.name }}</td>
+                            <td><span class="badge bg-dark">{{ log.sync_type }}</span></td>
+                            <td class="text-end fw-bold text-success">{{ log.records_processed }}</td>
+                            <td class="text-end fw-bold text-danger">{{ log.records_failed }}</td>
+                            <td class="text-center">
+                                {% if log.status == 'SUCCESS' %}
+                                    <span class="badge bg-success">SUCCESS</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ log.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end text-muted">{{ log.duration_seconds }}s</td>
+                            <td class="text-dark">{{ log.log_details|truncatechars:65 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No integration sync logs recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
