@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-landmark text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'taxation:jurisdiction_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Country *</label>
+                                {{ form.country }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Jurisdiction Code *</label>
+                                {{ form.code }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Jurisdiction Name *</label>
+                            {{ form.name }}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Tax Authority Name</label>
+                                {{ form.tax_authority_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Filing Frequency</label>
+                                {{ form.filing_frequency }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Default Currency</label>
+                                {{ form.currency }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">e-Way Bill Threshold ($)</label>
+                                {{ form.e_way_bill_threshold }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_default }}
+                                    <label class="form-check-label fw-medium ms-1">Default System Jurisdiction</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.e_invoicing_mandatory }}
+                                    <label class="form-check-label fw-medium ms-1">Mandatory e-Invoicing</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.e_way_bill_mandatory }}
+                                    <label class="form-check-label fw-medium ms-1">Mandatory e-Way Bill</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-save me-1"></i> Save Jurisdiction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

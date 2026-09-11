@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-barcode text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'taxation:hsn_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">HSN / SAC Code *</label>
+                                {{ form.code }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Type *</label>
+                                {{ form.code_type }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Goods / Services Description *</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Standard GST Rate (%) *</label>
+                            {{ form.standard_gst_rate }}
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_exempt }}
+                                    <label class="form-check-label fw-medium ms-1">Tax Exempt</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_nil_rated }}
+                                    <label class="form-check-label fw-medium ms-1">Nil Rated (0%)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.rcm_applicable }}
+                                    <label class="form-check-label fw-medium ms-1">Reverse Charge (RCM)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-save me-1"></i> Save HSN/SAC Code
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

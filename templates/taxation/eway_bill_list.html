@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}e-Way Bills - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-truck-fast text-primary me-2"></i>e-Way Bills & Transit Pass</h1>
+            <p class="text-muted mb-0">Statutory goods transit documentation compliant with NIC National e-Way Bill system.</p>
+        </div>
+        <a href="{% url 'taxation:eway_bill_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> Generate e-Way Bill
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>EWB Number</th>
+                            <th>Invoice / Doc #</th>
+                            <th>Mode / Vehicle</th>
+                            <th>Route (PIN to PIN)</th>
+                            <th>Distance</th>
+                            <th class="text-end">Invoice Value</th>
+                            <th>Valid Until</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ewb in ewbs %}
+                        <tr>
+                            <td><strong class="font-monospace text-primary fs-6">{{ ewb.ewb_number }}</strong></td>
+                            <td>{{ ewb.document_number }}</td>
+                            <td>
+                                <div><i class="fa-solid fa-truck me-1"></i> {{ ewb.vehicle_number|default:"Road Cargo" }}</div>
+                                <small class="text-muted">{{ ewb.transporter_name }}</small>
+                            </td>
+                            <td><span class="font-monospace text-muted">{{ ewb.from_pincode }} &rarr; {{ ewb.to_pincode }}</span></td>
+                            <td>{{ ewb.distance_km }} km</td>
+                            <td class="text-end font-monospace fw-bold">${{ ewb.total_invoice_value|floatformat:2|intcomma }}</td>
+                            <td><small class="text-muted">{{ ewb.valid_until|date:"M d, Y H:i" }}</small></td>
+                            <td class="text-center">
+                                <span class="badge bg-success">{{ ewb.status }}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'taxation:eway_bill_detail' pk=ewb.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-eye"></i> View Slip
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-truck-fast fa-3x mb-2 text-black-50"></i>
+                                <p>No e-Way bills generated yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

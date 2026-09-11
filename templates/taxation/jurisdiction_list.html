@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Tax Jurisdictions - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-landmark text-primary me-2"></i>Tax Jurisdictions & Authorities</h1>
+            <p class="text-muted mb-0">Manage countries, regulatory filing frequencies, e-invoicing thresholds and mandates.</p>
+        </div>
+        <a href="{% url 'taxation:jurisdiction_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i> Add Jurisdiction
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Country</th>
+                            <th>Jurisdiction Name</th>
+                            <th>Code</th>
+                            <th>Tax Authority</th>
+                            <th>Frequency</th>
+                            <th>e-Invoicing</th>
+                            <th>e-Way Bill</th>
+                            <th>Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j in jurisdictions %}
+                        <tr>
+                            <td><strong>{{ j.get_country_display }}</strong></td>
+                            <td>{{ j.name }}</td>
+                            <td><span class="badge bg-secondary font-monospace">{{ j.code }}</span></td>
+                            <td>{{ j.tax_authority_name }}</td>
+                            <td>{{ j.get_filing_frequency_display }}</td>
+                            <td>
+                                {% if j.e_invoicing_mandatory %}
+                                    <span class="badge bg-success">Mandatory</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">Optional</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if j.e_way_bill_mandatory %}
+                                    <span class="badge bg-primary">&gt; ${{ j.e_way_bill_threshold|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if j.is_default %}
+                                    <span class="badge bg-success"><i class="fa-solid fa-check"></i> Default</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">No tax jurisdictions configured.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-truck-fast text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'taxation:eway_bill_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Document / Invoice Number *</label>
+                                {{ form.document_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Document Type *</label>
+                                {{ form.document_type }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Transport Mode</label>
+                                {{ form.transport_mode }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Vehicle Registration #</label>
+                                {{ form.vehicle_number }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Transit Distance (KM) *</label>
+                                {{ form.distance_km }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Transporter GSTIN</label>
+                                {{ form.transporter_id }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Transporter Name</label>
+                                {{ form.transporter_name }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Dispatch From PIN Code *</label>
+                                {{ form.from_pincode }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Ship To PIN Code *</label>
+                                {{ form.to_pincode }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Total Consignment / Invoice Value ($) *</label>
+                            {{ form.total_invoice_value }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-bolt me-1"></i> Generate Statutory e-Way Bill
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

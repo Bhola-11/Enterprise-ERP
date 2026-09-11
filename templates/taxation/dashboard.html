@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Global Tax & Compliance Hub - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-scale-balanced text-primary me-2"></i>Global Tax Localization & Compliance Hub</h1>
+            <p class="text-muted mb-0">Multi-country statutory tax engines: Indian GST (CGST/SGST/IGST/EWB/IRN), US State Nexus, EU VAT OSS & UK MTD.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'taxation:gstr1_report' %}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-file-excel me-1"></i> GSTR-1 Generator
+            </a>
+            <a href="{% url 'taxation:eway_bill_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-truck-fast me-1"></i> Generate e-Way Bill
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">Tax Jurisdictions</div>
+                    <div class="h4 mb-0 fw-bold">{{ jurisdictions|length }} Active</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-success text-uppercase mb-1">e-Way Bills Active</div>
+                    <div class="h4 mb-0 fw-bold">{{ total_ewb }} Generated</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-info text-uppercase mb-1">e-Invoices (IRN)</div>
+                    <div class="h4 mb-0 fw-bold">{{ total_irn }} Signed</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-warning text-uppercase mb-1">Statutory Filings</div>
+                    <div class="h4 mb-0 fw-bold">{{ total_filings }} Filed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation Hub -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded me-3">
+                            <i class="fa-solid fa-globe fa-lg"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">Jurisdiction Masters</h5>
+                    </div>
+                    <p class="text-muted text-xs">Configure country-specific tax rules, default currencies, thresholds and authorities.</p>
+                    <a href="{% url 'taxation:jurisdiction_list' %}" class="btn btn-sm btn-outline-primary w-100">Manage Jurisdictions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success bg-opacity-10 text-success p-2 rounded me-3">
+                            <i class="fa-solid fa-barcode fa-lg"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">HSN & SAC Code Directory</h5>
+                    </div>
+                    <p class="text-muted text-xs">Browse harmonized tariff item codes, standard GST slabs, exemptions and RCM rates.</p>
+                    <a href="{% url 'taxation:hsn_list' %}" class="btn btn-sm btn-outline-success w-100">Browse HSN/SAC Codes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-10 text-warning p-2 rounded me-3">
+                            <i class="fa-solid fa-file-invoice fa-lg"></i>
+                        </div>
+                        <h5 class="card-title fw-bold mb-0">e-Invoicing (IRP)</h5>
+                    </div>
+                    <p class="text-muted text-xs">Real-time SHA-256 IRN hash generator, QR codes and Government IRP JSON schema.</p>
+                    <a href="{% url 'taxation:einvoice_list' %}" class="btn btn-sm btn-outline-warning w-100">View e-Invoices</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent e-Way Bills & Tax Filings Tables -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-truck-fast text-primary me-2"></i>Recent e-Way Bills</h5>
+                    <a href="{% url 'taxation:eway_bill_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>EWB #</th>
+                                    <th>Invoice #</th>
+                                    <th>Vehicle</th>
+                                    <th>Validity</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ewb in recent_ewb %}
+                                <tr>
+                                    <td><a href="{% url 'taxation:eway_bill_detail' pk=ewb.id %}" class="fw-bold font-monospace">{{ ewb.ewb_number }}</a></td>
+                                    <td>{{ ewb.document_number }}</td>
+                                    <td>{{ ewb.vehicle_number|default:"Rail/Air" }}</td>
+                                    <td>{{ ewb.valid_until|date:"M d, H:i" }}</td>
+                                    <td><span class="badge bg-success">{{ ewb.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No e-Way bills generated yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-file-contract text-primary me-2"></i>Statutory Tax Returns</h5>
+                    <a href="{% url 'taxation:tax_filing_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-xs">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Return Type</th>
+                                    <th>Period</th>
+                                    <th class="text-end">Tax Payable</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f in recent_filings %}
+                                <tr>
+                                    <td><strong>{{ f.get_return_type_display }}</strong></td>
+                                    <td>{{ f.period_start|date:"M Y" }}</td>
+                                    <td class="text-end font-monospace fw-bold">${{ f.net_tax_payable|floatformat:2|intcomma }}</td>
+                                    <td><span class="badge bg-info">{{ f.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No tax returns filed yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

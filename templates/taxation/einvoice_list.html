@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}e-Invoicing IRN Portal - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-file-invoice text-primary me-2"></i>e-Invoicing (IRN) Portal</h1>
+            <p class="text-muted mb-0">Live electronic invoice registration with Government IRP, signed QR payload and SHA-256 IRN hash.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-xs">
+                    <thead class="table-light">
+                        <tr>
+                            <th>IRN Hash (SHA-256)</th>
+                            <th>Ack # & Date</th>
+                            <th>Invoice #</th>
+                            <th>Seller GSTIN</th>
+                            <th>Buyer GSTIN</th>
+                            <th class="text-end">Invoice Value</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for irn in einvoices %}
+                        <tr>
+                            <td>
+                                <strong class="font-monospace text-primary" title="{{ irn.irn_hash }}">{{ irn.irn_hash|slice:":16" }}...</strong>
+                            </td>
+                            <td>
+                                <div>{{ irn.ack_number }}</div>
+                                <small class="text-muted">{{ irn.ack_date|date:"M d, Y H:i" }}</small>
+                            </td>
+                            <td class="fw-bold">{{ irn.invoice_number }}</td>
+                            <td class="font-monospace">{{ irn.seller_gstin }}</td>
+                            <td class="font-monospace">{{ irn.buyer_gstin|default:"B2C Client" }}</td>
+                            <td class="text-end font-monospace fw-bold">${{ irn.total_invoice_value|floatformat:2|intcomma }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-success">{{ irn.status }}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'taxation:einvoice_detail' pk=irn.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-qrcode"></i> View QR
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-file-invoice fa-3x mb-2 text-black-50"></i>
+                                <p>No e-Invoices registered yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
