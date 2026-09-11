@@ -30,6 +30,17 @@ from subcontracting.models import (
     SubcontractorVendor, SubcontractOrder, SubcontractMaterialDispatch,
     SubcontractGoodsReceipt
 )
+from api_gateway.models import (
+    RateLimitPolicy, APIClient, APIKey, APIGatewayRequestLog
+)
+from webhooks_engine.models import (
+    WebhookEndpoint, WebhookEvent, WebhookDeliveryAttempt
+)
+from integrations_sdk.models import (
+    IntegrationConnector, EntitySyncMapping, IntegrationSyncLog
+)
+from api_gateway.services import APIKeyManager
+
 
 import os
 from decimal import Decimal
@@ -1185,5 +1196,129 @@ class Command(BaseCommand):
                 }
             )
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 30 modules!'))
+        # 29. API Gateway & Microservice Key Governance
+        tier_enterprise, _ = RateLimitPolicy.objects.get_or_create(
+            name='Tier-1 Enterprise Partner (High Velocity)',
+            defaults={
+                'requests_per_minute': 500,
+                'requests_per_hour': 25000,
+                'burst_limit': 50,
+                'is_default': True
+            }
+        )
+        client_acme, _ = APIClient.objects.get_or_create(
+            client_name='Acme Robotics Telemetry & Fleet Controller',
+            defaults={
+                'organization': org,
+                'contact_email': 'api-admin@acmerobotics.io',
+                'rate_limit_policy': tier_enterprise,
+                'allowed_scopes': 'read:inventory,write:orders,read:mrp',
+                'is_active': True
+            }
+        )
+        if not client_acme.api_keys.exists():
+            APIKeyManager.generate_api_key(client_acme, name='Primary Production Key', key_type='LIVE')
+
+        APIGatewayRequestLog.objects.get_or_create(
+            endpoint='/gateway/api/v1/inventory/catalog/',
+            http_method='GET',
+            status_code=200,
+            defaults={
+                'client_name': client_acme.client_name,
+                'response_time_ms': Decimal('8.45'),
+                'client_ip': '198.51.100.42',
+                'user_agent': 'AcmeRobotics-FleetDaemon/3.2',
+                'request_headers': {'Host': 'api.nexora.io', 'Accept': 'application/json'},
+                'query_params': {'limit': '50'}
+            }
+        )
+
+        # 30. Enterprise Webhooks Engine & Event Streams
+        wh_shopify, _ = WebhookEndpoint.objects.get_or_create(
+            name='Shopify Global E-Commerce Storefront',
+            defaults={
+                'target_url': 'https://storefront.nexora.com/api/webhooks/nexora-sync',
+                'secret_key': 'sec_live_99482739487293847293847293847293',
+                'subscribed_events': ['sales.order.created', 'inventory.stock.low'],
+                'retry_limit': 5,
+                'is_active': True,
+                'total_deliveries_count': 12,
+                'successful_deliveries_count': 12
+            }
+        )
+        ev_sample, _ = WebhookEvent.objects.get_or_create(
+            topic='sales.order.created',
+            defaults={
+                'payload': {
+                    'order_number': 'SO-2026-0001',
+                    'customer': 'Boeing Commercial Airplanes',
+                    'total_amount': '250000.00',
+                    'currency': 'USD'
+                }
+            }
+        )
+        WebhookDeliveryAttempt.objects.get_or_create(
+            event=ev_sample,
+            endpoint=wh_shopify,
+            defaults={
+                'status': 'DELIVERED',
+                'http_status_code': 200,
+                'response_body': '{"status":"acknowledged","received_at":"2026-09-11T16:00:00Z"}',
+                'attempt_number': 1,
+                'duration_ms': Decimal('12.80'),
+                'signature_header': 'sha256=9f8e7d6c5b4a3928170e28471928471928471928471928471928471928471928'
+            }
+        )
+
+        # 31. Enterprise Integration Connectors & Sync Mappings
+        conn_stripe, _ = IntegrationConnector.objects.get_or_create(
+            name='Stripe Global Billing & Multi-Currency Settlement',
+            defaults={
+                'connector_type': 'STRIPE',
+                'auth_type': 'API_KEY',
+                'base_url': 'https://api.stripe.com/v1',
+                'credentials_config': {'token_masked': 'sk_live_...984A'},
+                'sync_interval_minutes': 15,
+                'sync_status': 'SUCCESS',
+                'last_sync_at': timezone.now(),
+                'is_active': True
+            }
+        )
+        conn_sf, _ = IntegrationConnector.objects.get_or_create(
+            name='Salesforce Enterprise CRM Cloud',
+            defaults={
+                'connector_type': 'SALESFORCE',
+                'auth_type': 'OAUTH2',
+                'base_url': 'https://nexora.my.salesforce.com',
+                'credentials_config': {'client_id': '3MVG9...SFDC'},
+                'sync_interval_minutes': 30,
+                'sync_status': 'SUCCESS',
+                'last_sync_at': timezone.now(),
+                'is_active': True
+            }
+        )
+        EntitySyncMapping.objects.get_or_create(
+            connector=conn_stripe,
+            entity_type='CUSTOMER',
+            local_id=1,
+            defaults={
+                'external_reference_id': 'cus_stripe_000001',
+                'sync_direction': 'BIDIRECTIONAL',
+                'sync_payload_snapshot': {'stripe_customer_id': 'cus_stripe_000001', 'auto_charge': True}
+            }
+        )
+        IntegrationSyncLog.objects.get_or_create(
+            connector=conn_stripe,
+            sync_type='SCHEDULED_HOURLY',
+            defaults={
+                'records_processed': 15,
+                'records_failed': 0,
+                'status': 'SUCCESS',
+                'log_details': 'Successfully synchronized 15 customer billing profiles and settled charges.',
+                'duration_seconds': Decimal('0.42')
+            }
+        )
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 33 modules!'))
+
 

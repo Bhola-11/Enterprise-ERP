@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     'mrp_planning.apps.MrpPlanningConfig',
     'quality_control.apps.QualityControlConfig',
     'subcontracting.apps.SubcontractingConfig',
+    'api_gateway.apps.ApiGatewayConfig',
+    'webhooks_engine.apps.WebhooksEngineConfig',
+    'integrations_sdk.apps.IntegrationsSdkConfig',
 ]
 
 MIDDLEWARE = [

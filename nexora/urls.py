@@ -59,6 +59,9 @@ urlpatterns = [
     path('mrp/', include('mrp_planning.urls', namespace='mrp_planning')),
     path('quality/', include('quality_control.urls', namespace='quality_control')),
     path('subcontracting/', include('subcontracting.urls', namespace='subcontracting')),
+    path('gateway/', include('api_gateway.urls', namespace='api_gateway')),
+    path('webhooks/', include('webhooks_engine.urls', namespace='webhooks_engine')),
+    path('integrations/', include('integrations_sdk.urls', namespace='integrations_sdk')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

@@ -196,6 +196,22 @@
                             <i class="fa-solid fa-hotel"></i> Hotel & Hospitality PMS
                         </a>
                     </li>
+                    <li class="sidebar-heading">Developers & Ecosystem</li>
+                    <li class="nav-item">
+                        <a href="{% url 'api_gateway:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'api_gateway' %}active{% endif %}">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> API Gateway & Keys
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'webhooks_engine:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'webhooks_engine' %}active{% endif %}">
+                            <i class="fa-solid fa-satellite-dish"></i> Webhooks & HMAC
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'integrations_sdk:marketplace' %}" class="nav-link {% if request.resolver_match.app_name == 'integrations_sdk' %}active{% endif %}">
+                            <i class="fa-solid fa-puzzle-piece"></i> Integrations & SDKs
+                        </a>
+                    </li>
 
                     <li class="sidebar-heading">Administration & Governance</li>
                     <li class="nav-item">
