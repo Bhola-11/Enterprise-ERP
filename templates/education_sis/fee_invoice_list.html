@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-cash-stack me-2 text-primary"></i>Student Fee Invoicing</h1>
+            <p class="text-muted mb-0">Track tuition billing, campus housing fees, and online payment reconciliations.</p>
+        </div>
+        <a href="{% url 'education_sis:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to SIS</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Student</th>
+                            <th>Session</th>
+                            <th>Total Billed</th>
+                            <th>Paid Amount</th>
+                            <th>Balance Due</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                        <tr>
+                            <td><strong>{{ inv.invoice_number }}</strong></td>
+                            <td>
+                                <a href="{% url 'education_sis:student_profile' inv.student.id %}" class="fw-bold">{{ inv.student.full_name }}</a>
+                                <div class="small text-muted">{{ inv.student.student_id }}</div>
+                            </td>
+                            <td>{{ inv.session.name }}</td>
+                            <td>${{ inv.total_amount }}</td>
+                            <td class="text-success">${{ inv.paid_amount }}</td>
+                            <td class="fw-bold text-danger">${{ inv.balance_amount }}</td>
+                            <td><span class="badge {% if inv.status == 'PAID' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ inv.get_status_display }}</span></td>
+                            <td>
+                                {% if inv.status != 'PAID' %}
+                                <a href="{% url 'education_sis:fee_payment_process' inv.id %}" class="btn btn-sm btn-primary"><i class="bi bi-credit-card me-1"></i>Pay</a>
+                                {% else %}
+                                <span class="badge bg-light text-success"><i class="bi bi-check-circle"></i> Settled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No tuition fee invoices found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
