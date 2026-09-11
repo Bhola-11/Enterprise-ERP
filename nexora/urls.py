@@ -1,0 +1,59 @@
+"""
+Nexora Enterprise OS URL Configuration
+"""
+
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Custom Admin Site Headers
+admin.site.site_header = "Nexora Enterprise OS — Administration"
+admin.site.site_title = "Nexora Enterprise ERP"
+admin.site.index_title = "Enterprise Operations & Business Governance Portal"
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    
+    # Core Landing & Search
+    path('', include('core.urls', namespace='core')),
+    
+    # Authentication & User Management
+    path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    
+    # Organization Management
+    path('organizations/', include('organizations.urls', namespace='organizations')),
+    
+    # Executive Dashboard
+    path('dashboard/', include('dashboard.urls', namespace='dashboard')),
+    
+    # Core Enterprise Modules
+    path('crm/', include('crm.urls', namespace='crm')),
+    path('sales/', include('sales.urls', namespace='sales')),
+    path('purchasing/', include('purchasing.urls', namespace='purchasing')),
+    path('procurement/', include('procurement.urls', namespace='procurement')),
+    path('inventory/', include('inventory.urls', namespace='inventory')),
+    path('warehouse/', include('warehouse.urls', namespace='warehouse')),
+    path('accounting/', include('accounting.urls', namespace='accounting')),
+    path('hr/', include('hr.urls', namespace='hr')),
+    path('payroll/', include('payroll.urls', namespace='payroll')),
+    path('projects/', include('projects.urls', namespace='projects')),
+    path('support/', include('support.urls', namespace='support')),
+    path('assets/', include('assets.urls', namespace='assets')),
+    path('fleet/', include('fleet.urls', namespace='fleet')),
+    path('manufacturing/', include('manufacturing.urls', namespace='manufacturing')),
+    path('documents/', include('documents.urls', namespace='documents')),
+    path('workflows/', include('workflows.urls', namespace='workflows')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('reports/', include('reports.urls', namespace='reports')),
+    path('audit/', include('audit.urls', namespace='audit')),
+    
+    # REST API Layer
+    path('api/v1/', include('api.urls', namespace='api_v1')),
+    path('api/', include('api.urls', namespace='api')),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
