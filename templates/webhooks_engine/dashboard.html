@@ -1,0 +1,133 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Asynchronous real-time event publishing with cryptographic HMAC-SHA256 signatures.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'webhooks_engine:delivery_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list-check me-1"></i> Delivery Audit
+            </a>
+            <a href="{% url 'webhooks_engine:endpoint_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Add Webhook Endpoint
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Active Endpoints</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">{{ active_endpoints }} <small class="text-muted fs-6">/ {{ total_endpoints }}</small></h3>
+                    <small class="text-muted"><i class="fas fa-satellite-dish me-1 text-primary"></i>Subscribed targets</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Published Events</span>
+                    <h3 class="fw-bold text-info mt-2 mb-0">{{ total_events }}</h3>
+                    <small class="text-muted"><i class="fas fa-bolt me-1 text-warning"></i>Domain signals fired</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Delivery Success Rate</span>
+                    <h3 class="fw-bold text-success mt-2 mb-0">{{ overall_rate }}%</h3>
+                    <small class="text-success"><i class="fas fa-circle-check me-1"></i>{{ successful_deliveries }} successful deliveries</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-secondary border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Total Dispatch Attempts</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">{{ total_deliveries }}</h3>
+                    <small class="text-muted"><i class="fas fa-shield-halved me-1 text-secondary"></i>HMAC Signed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Trigger Test Webhook Form -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2"></i>Trigger Live Simulated Webhook</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Event Topic *</label>
+                            {{ test_form.topic }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Sample Event Payload (JSON) *</label>
+                            {{ test_form.sample_payload }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-bolt me-1"></i> Dispatch Test Webhook
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Recent Delivery Activity -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-clock-rotate-left me-2 text-primary"></i>Recent Deliveries</h5>
+                    <a href="{% url 'webhooks_engine:delivery_list' %}" class="btn btn-sm btn-outline-secondary">View Full Log</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Event Topic</th>
+                                    <th>Target Endpoint</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end">Latency</th>
+                                    <th class="text-end">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for att in recent_attempts %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ att.event.topic }}</td>
+                                    <td>{{ att.endpoint.name|truncatechars:20 }}</td>
+                                    <td class="text-center">
+                                        {% if att.status == 'DELIVERED' %}
+                                            <span class="badge bg-success">200 OK</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ att.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-muted">{{ att.duration_ms }}ms</td>
+                                    <td class="text-end text-muted">{{ att.created_at|date:"H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No webhook deliveries recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

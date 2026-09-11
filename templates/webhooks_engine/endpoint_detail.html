@@ -1,0 +1,96 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">{{ endpoint.name }}</h1>
+                {% if endpoint.is_active %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary">Disabled</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0 font-monospace">{{ endpoint.target_url }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'webhooks_engine:endpoint_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> All Endpoints
+            </a>
+            <a href="{% url 'webhooks_engine:dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line me-1"></i> Hub
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Delivery Performance</span>
+                    <h3 class="fw-bold text-success mt-1 mb-0">{{ endpoint.success_rate }}%</h3>
+                    <small class="text-muted">{{ endpoint.successful_deliveries_count }} of {{ endpoint.total_deliveries_count }} delivered</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Subscribed Topics</span>
+                    <div class="mt-2">
+                        {% for topic in endpoint.subscribed_events %}
+                            <span class="badge bg-primary me-1 mb-1">{{ topic }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Delivery Logs -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-list-check me-2 text-primary"></i>Delivery Attempts History</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 font-monospace small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event Topic</th>
+                            <th>Status</th>
+                            <th>HTTP Code</th>
+                            <th class="text-end">Latency</th>
+                            <th>Signature</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in attempts %}
+                        <tr>
+                            <td class="text-muted">{{ a.created_at|date:"Y-m-d H:i:s" }}</td>
+                            <td class="fw-bold text-primary">{{ a.event.topic }}</td>
+                            <td>
+                                {% if a.status == 'DELIVERED' %}
+                                    <span class="badge bg-success">Delivered</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ a.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ a.http_status_code|default:"-" }}</td>
+                            <td class="text-end text-muted">{{ a.duration_ms }}ms</td>
+                            <td><code class="small text-muted">{{ a.signature_header|truncatechars:24 }}</code></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No delivery attempts recorded for this endpoint.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
