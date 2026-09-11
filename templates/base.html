@@ -103,6 +103,21 @@
                             <i class="fa-solid fa-industry"></i> Manufacturing & BOM
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mrp_planning:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'mrp_planning' %}active{% endif %}">
+                            <i class="fa-solid fa-network-wired"></i> MRP II & MPS Planning
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'quality_control:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'quality_control' %}active{% endif %}">
+                            <i class="fa-solid fa-clipboard-check"></i> Quality QMS & AQL
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'subcontracting:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'subcontracting' %}active{% endif %}">
+                            <i class="fa-solid fa-truck-ramp-box"></i> Subcontracting & Toll
+                        </a>
+                    </li>
 
                     <li class="sidebar-heading">Finance & Accounting</li>
                     <li class="nav-item">

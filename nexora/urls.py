@@ -56,6 +56,9 @@ urlpatterns = [
     path('education/', include('education_sis.urls', namespace='education_sis')),
     path('real-estate/', include('real_estate_pms.urls', namespace='real_estate_pms')),
     path('hospitality/', include('hospitality_pms.urls', namespace='hospitality_pms')),
+    path('mrp/', include('mrp_planning.urls', namespace='mrp_planning')),
+    path('quality/', include('quality_control.urls', namespace='quality_control')),
+    path('subcontracting/', include('subcontracting.urls', namespace='subcontracting')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

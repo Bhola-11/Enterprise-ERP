@@ -19,6 +19,17 @@ from hospitality_pms.models import (
     RoomType, HotelRoom, GuestProfile, RoomReservation,
     GuestFolioInvoice, FolioChargeLine, HousekeepingTask
 )
+from mrp_planning.models import (
+    MasterProductionSchedule, SafetyStockRule, MRPRun, MRPRequirementItem
+)
+from quality_control.models import (
+    InspectionPlan, InspectionCharacteristic, QualityInspectionTicket,
+    InspectionResultMetric, NonConformanceReport, CAPAAction
+)
+from subcontracting.models import (
+    SubcontractorVendor, SubcontractOrder, SubcontractMaterialDispatch,
+    SubcontractGoodsReceipt
+)
 
 import os
 from decimal import Decimal
@@ -994,4 +1005,185 @@ class Command(BaseCommand):
         FolioChargeLine.objects.get_or_create(folio=fol_vanderbilt, description='Room Service: Osetra Caviar & Dom Perignon', defaults={'charge_type': 'RESTAURANT', 'amount': Decimal('285.00')})
         HousekeepingTask.objects.get_or_create(room=rm_802, task_type='STAY_OVER_CLEAN', defaults={'status': 'INSPECTED_CLEAN', 'assigned_housekeeper': 'Maria Gonzales', 'notes': 'Fresh linens, turndown amenities set'})
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 27 modules!'))
+        # 26. MRP II & MPS Material Requirements Planning
+        u_admin = users.get('admin@nexora.com') or User.objects.first()
+        prod_server = Product.objects.filter(sku='NX-SRV-001').first() or Product.objects.first()
+        wh_main = Warehouse.objects.first()
+        if prod_server and wh_main:
+            mps_q4, _ = MasterProductionSchedule.objects.get_or_create(
+                product=prod_server,
+                period_start=date(2026, 10, 1),
+                period_end=date(2026, 12, 31),
+                defaults={
+                    'forecast_demand_qty': Decimal('150.00'),
+                    'confirmed_so_qty': Decimal('85.00'),
+                    'planned_production_qty': Decimal('120.00'),
+                    'status': 'APPROVED',
+                    'notes': 'Q4 Enterprise Server Build Plan'
+                }
+            )
+            SafetyStockRule.objects.get_or_create(
+                product=prod_server,
+                warehouse=wh_main,
+                defaults={
+                    'min_safety_stock': Decimal('25.00'),
+                    'reorder_point': Decimal('50.00'),
+                    'economic_order_quantity': Decimal('100.00'),
+                    'lead_time_days': 14,
+                    'is_active': True
+                }
+            )
+            mrp_run_seed, _ = MRPRun.objects.get_or_create(
+                run_number='MRP-2026-Q4-01',
+                defaults={
+                    'planning_horizon_days': 90,
+                    'include_forecast': True,
+                    'include_safety_stock': True,
+                    'total_planned_orders_count': 3,
+                    'status': 'COMPLETED',
+                    'executed_by': u_admin
+                }
+            )
+            MRPRequirementItem.objects.get_or_create(
+                mrp_run=mrp_run_seed,
+                product=prod_server,
+                requirement_date=date(2026, 10, 15),
+                defaults={
+                    'gross_requirement': Decimal('120.00'),
+                    'current_on_hand': Decimal('18.00'),
+                    'scheduled_receipts': Decimal('10.00'),
+                    'net_requirement': Decimal('117.00'),
+                    'order_action': 'PRODUCTION_ORDER',
+                    'planned_order_qty': Decimal('120.00'),
+                    'lead_time_days': 10,
+                    'order_release_date': date(2026, 10, 5),
+                    'status': 'RECOMMENDED'
+                }
+            )
+
+        # 27. Quality Management System (QMS) & AQL Inspection
+        qc_plan_incoming, _ = InspectionPlan.objects.get_or_create(
+            code='QC-PLAN-ELEC-01',
+            defaults={
+                'name': 'Inbound Server Motherboard & Microchip Inspection Plan',
+                'category': 'INWARD_GRN',
+                'sampling_standard': 'AQL_1_0',
+                'description': 'Strict MIL-STD-105E inspection criteria for microprocessors and multi-layer PCBs.',
+                'is_active': True
+            }
+        )
+        InspectionCharacteristic.objects.get_or_create(
+            plan=qc_plan_incoming,
+            parameter_name='Solder Joint Integrity & Thermal Resistance',
+            defaults={
+                'measurement_unit': 'deg C/W',
+                'min_acceptable_value': Decimal('0.150'),
+                'max_acceptable_value': Decimal('0.450'),
+                'is_critical': True
+            }
+        )
+        InspectionCharacteristic.objects.get_or_create(
+            plan=qc_plan_incoming,
+            parameter_name='Supply Voltage Tolerance (Vcc 3.3V)',
+            defaults={
+                'measurement_unit': 'Volts',
+                'min_acceptable_value': Decimal('3.200'),
+                'max_acceptable_value': Decimal('3.400'),
+                'is_critical': True
+            }
+        )
+        qc_ticket_demo, _ = QualityInspectionTicket.objects.get_or_create(
+            ticket_number='QC-2026-0089',
+            defaults={
+                'plan': qc_plan_incoming,
+                'reference_type': 'GRN',
+                'reference_code': 'GRN-2026-0812',
+                'lot_size': 500,
+                'sample_size': 50,
+                'inspected_quantity': 50,
+                'accepted_quantity': 48,
+                'rejected_quantity': 2,
+                'disposition': 'ACCEPTED_DEVIATION',
+                'status': 'COMPLETED',
+                'inspector': u_admin,
+                'inspection_date': timezone.now().date()
+            }
+        )
+        ncr_demo, _ = NonConformanceReport.objects.get_or_create(
+            ncr_number='NCR-2026-0019',
+            defaults={
+                'ticket': qc_ticket_demo,
+                'defect_title': 'Minor thermal paste voiding on secondary heatsink rails',
+                'defect_severity': 'MINOR',
+                'defect_description': 'X-ray inspection revealed 4% voiding under heatsink interface pad.',
+                'root_cause_analysis': 'Dispenser nozzle pressure drop during high-speed batch application at supplier site.',
+                'containment_action': 'Thermal rework performed in-house prior to chassis assembly.',
+                'status': 'CLOSED',
+                'reported_by': u_admin
+            }
+        )
+        CAPAAction.objects.get_or_create(
+            ncr=ncr_demo,
+            action_description='Supplier calibrated automatic paste injection head and added vision inspection gate at SMT line.',
+            defaults={
+                'action_type': 'PREVENTIVE',
+                'assigned_owner': 'Alexander Vance (Operations Director)',
+                'target_due_date': date.today() + timedelta(days=21),
+                'is_verified': True
+            }
+        )
+
+        # 28. Subcontracting & Toll Processing Operations
+        sub_vendor_apex, _ = SubcontractorVendor.objects.get_or_create(
+            code='VND-SUB-APEX',
+            defaults={
+                'name': 'Apex Precision CNC & Anodizing Technologies LLC',
+                'contact_person': 'Robert Vance',
+                'contact_email': 'orders@apexprecision.com',
+                'contact_phone': '+1-313-555-0812',
+                'facility_address': '450 Precision Industrial Parkway, Livonia, MI 48150',
+                'toll_processing_types': 'CNC Milling, High-Tolerance Billet Drilling, Mil-Spec Hard Anodizing',
+                'is_active': True
+            }
+        )
+        if prod_server:
+            sub_order_demo, _ = SubcontractOrder.objects.get_or_create(
+                order_number='SCO-2026-0045',
+                defaults={
+                    'subcontractor': sub_vendor_apex,
+                    'finished_product': prod_server,
+                    'order_date': date.today() - timedelta(days=10),
+                    'expected_delivery_date': date.today() + timedelta(days=5),
+                    'planned_quantity': Decimal('100.00'),
+                    'unit_processing_rate': Decimal('45.00'),
+                    'total_service_cost': Decimal('4500.00'),
+                    'status': 'PARTIALLY_RECEIVED',
+                    'notes': 'Ensure class-3 hard anodize coating per MIL-A-8625 type III.',
+                    'created_by': u_admin
+                }
+            )
+            raw_material_item = Product.objects.exclude(id=prod_server.id).first() or prod_server
+            SubcontractMaterialDispatch.objects.get_or_create(
+                dispatch_challan_number='DC-SCO-2026-0045-01',
+                defaults={
+                    'order': sub_order_demo,
+                    'raw_material': raw_material_item,
+                    'quantity_issued': Decimal('105.00'),
+                    'lot_number': 'LOT-ALU-6061-T6'
+                }
+            )
+            SubcontractGoodsReceipt.objects.get_or_create(
+                receipt_number='SGRN-SCO-2026-0045-01',
+                defaults={
+                    'order': sub_order_demo,
+                    'quantity_received': Decimal('60.00'),
+                    'quantity_rejected': Decimal('1.00'),
+                    'scrap_material_reported': Decimal('2.00'),
+                    'actual_yield_percentage': Decimal('98.33'),
+                    'vendor_delivery_note_ref': 'APX-DC-9042',
+                    'received_by': u_admin
+                }
+            )
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 30 modules!'))
+
