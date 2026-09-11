@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-building me-2 text-primary"></i>Shipping Carriers & 3PL Partners</h1>
+            <p class="text-muted mb-0">Partner airlines, ocean liners, trucking fleets and courier integrations.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'logistics_3pl:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Logistics</a>
+            <a href="{% url 'logistics_3pl:carrier_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Carrier</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for carrier in carriers %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title fw-bold text-primary mb-0">{{ carrier.name }}</h5>
+                        <span class="badge bg-secondary">{{ carrier.code }}</span>
+                    </div>
+                    <div class="small text-muted mb-3">Type: <strong>{{ carrier.get_carrier_type_display }}</strong></div>
+                    <div class="small mb-2"><i class="bi bi-envelope me-1"></i>{{ carrier.contact_email|default:"N/A" }}</div>
+                    <div class="small mb-2"><i class="bi bi-telephone me-1"></i>{{ carrier.contact_phone|default:"N/A" }}</div>
+                </div>
+                <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                    <span class="badge {% if carrier.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if carrier.is_active %}Active Partner{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">No carriers configured yet.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

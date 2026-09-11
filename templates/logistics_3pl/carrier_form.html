@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-plus-circle me-2 text-primary"></i>Add Carrier Partner</h1>
+            <p class="text-muted mb-0">Register a new freight carrier, airline, ocean liner or courier provider.</p>
+        </div>
+        <a href="{% url 'logistics_3pl:carrier_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Carriers</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Carrier Name *</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Carrier Code *</label>
+                        {{ form.code }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Carrier Type *</label>
+                        {{ form.carrier_type }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tracking URL Template</label>
+                        {{ form.tracking_url_template }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Email</label>
+                        {{ form.contact_email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Phone</label>
+                        {{ form.contact_phone }}
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Active Carrier Partner
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3 d-flex justify-content-end gap-2">
+                        <a href="{% url 'logistics_3pl:carrier_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save Carrier</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

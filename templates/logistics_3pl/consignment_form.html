@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-plus-circle me-2 text-primary"></i>{{ page_title }}</h1>
+            <p class="text-muted mb-0">Create international freight booking manifest & rating calculation.</p>
+        </div>
+        <a href="{% url 'logistics_3pl:consignment_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Shipping Carrier *</label>
+                        {{ form.carrier }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Transport Mode *</label>
+                        {{ form.transport_mode }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Client Account / Customer</label>
+                        {{ form.customer }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Service Level</label>
+                        {{ form.service_level }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Origin Hub / Port *</label>
+                        {{ form.origin_hub }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Destination Hub / Port *</label>
+                        {{ form.destination_hub }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Shipper Name *</label>
+                        {{ form.shipper_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Consignee Name *</label>
+                        {{ form.consignee_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Shipper Full Address</label>
+                        {{ form.shipper_address }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Consignee Full Address</label>
+                        {{ form.consignee_address }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Actual Gross Weight (kg) *</label>
+                        {{ form.actual_gross_weight_kg }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Volumetric Wt (kg)</label>
+                        {{ form.volumetric_weight_kg }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-primary">Chargeable Wt (kg) *</label>
+                        {{ form.chargeable_weight_kg }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Total Volume (CBM)</label>
+                        {{ form.total_volume_cbm }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Total Pieces</label>
+                        {{ form.total_pieces }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Declared Customs Value ($)</label>
+                        {{ form.declared_customs_value }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Incoterms</label>
+                        {{ form.incoterms }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Special Instructions</label>
+                        {{ form.special_instructions }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            {{ form.is_dangerous_goods }}
+                            <label class="form-check-label fw-bold text-danger" for="{{ form.is_dangerous_goods.id_for_label }}">
+                                Contains Hazardous / Dangerous Goods (HAZMAT)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-4 d-flex justify-content-end gap-2">
+                        <a href="{% url 'logistics_3pl:consignment_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-circle me-1"></i>Save & Book Consignment</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

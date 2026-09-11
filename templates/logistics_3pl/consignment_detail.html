@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0 text-gray-800">Shipment {{ consignment.tracking_number }}</h1>
+                <span class="badge {% if consignment.status == 'DELIVERED' %}bg-success{% elif consignment.status == 'IN_TRANSIT' %}bg-info{% elif consignment.status == 'EXCEPTION' or consignment.status == 'IN_CUSTOMS' %}bg-danger{% else %}bg-warning text-dark{% endif %} fs-6">
+                    {{ consignment.get_status_display }}
+                </span>
+            </div>
+            <p class="text-muted mb-0">Carrier: <strong>{{ consignment.carrier.name }}</strong> | Mode: <strong>{{ consignment.transport_mode }}</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'logistics_3pl:consignment_awb_slip' consignment.id %}" class="btn btn-outline-dark" target="_blank"><i class="bi bi-printer me-1"></i>Air Waybill / BOL</a>
+            <a href="{% url 'logistics_3pl:consignment_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-signpost-2 me-1"></i>Transit Milestones & Telemetry</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline position-relative ps-4">
+                        {% for cp in checkpoints %}
+                        <div class="mb-4 position-relative">
+                            <div class="position-absolute" style="left: -28px; top: 0;">
+                                <i class="bi bi-geo-alt-fill text-primary fs-5"></i>
+                            </div>
+                            <div class="card border-light bg-light p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h6 class="mb-0 fw-bold text-dark">{{ cp.status_title }} - {{ cp.location_city }}</h6>
+                                    <span class="badge bg-secondary">{{ cp.timestamp|date:"d M Y H:i" }}</span>
+                                </div>
+                                <div class="small text-muted mb-2"><i class="bi bi-building me-1"></i>Facility: {{ cp.facility_name }}</div>
+                                <p class="mb-0 small text-gray-700">{{ cp.description }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted py-3">No milestones recorded yet.</div>
+                        {% endfor %}
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-primary mb-3"><i class="bi bi-plus-circle me-1"></i>Add Checkpoint / Milestone Event</h6>
+                    <form method="post" action="{% url 'logistics_3pl:consignment_add_milestone' consignment.id %}">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Location City</label>
+                                {{ milestone_form.location_city }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Facility Name</label>
+                                {{ milestone_form.facility_name }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Status Event Title</label>
+                                {{ milestone_form.status_title }}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Detailed Log Note</label>
+                                {{ milestone_form.description }}
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i>Post Checkpoint Event</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-info-circle me-1"></i>Consignment Metadata</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Origin Hub:</span>
+                            <span class="fw-bold">{{ consignment.origin_hub }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Destination Hub:</span>
+                            <span class="fw-bold">{{ consignment.destination_hub }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Gross Weight:</span>
+                            <span>{{ consignment.actual_gross_weight_kg }} kg</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Chargeable Wt:</span>
+                            <span class="fw-bold text-primary">{{ consignment.chargeable_weight_kg }} kg</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Declared Value:</span>
+                            <span class="fw-bold text-success">${{ consignment.declared_customs_value }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if invoice %}
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0"><i class="bi bi-receipt me-1"></i>Freight Invoice</h6>
+                    <span class="badge bg-light text-dark">{{ invoice.invoice_number }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Freight Base Charge:</small>
+                        <small class="fw-bold">${{ invoice.freight_charge }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Fuel Surcharge:</small>
+                        <small class="fw-bold">${{ invoice.fuel_surcharge }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Customs Clearance:</small>
+                        <small class="fw-bold">${{ invoice.customs_clearance_fee }}</small>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold text-primary">Total:</span>
+                        <span class="fw-bold text-primary fs-5">${{ invoice.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

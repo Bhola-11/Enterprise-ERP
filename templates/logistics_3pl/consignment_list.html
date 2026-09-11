@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-boxes me-2 text-primary"></i>Freight Consignments</h1>
+            <p class="text-muted mb-0">Manage shipments, customs clearances, waybills and routing telemetry.</p>
+        </div>
+        <a href="{% url 'logistics_3pl:consignment_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Book Consignment</a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Search tracking, shipper, origin, dest..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="BOOKED" {% if selected_status == 'BOOKED' %}selected{% endif %}>Booked</option>
+                        <option value="PICKED_UP" {% if selected_status == 'PICKED_UP' %}selected{% endif %}>Picked Up</option>
+                        <option value="IN_TRANSIT" {% if selected_status == 'IN_TRANSIT' %}selected{% endif %}>In Transit</option>
+                        <option value="IN_CUSTOMS" {% if selected_status == 'IN_CUSTOMS' %}selected{% endif %}>In Customs Hold</option>
+                        <option value="OUT_FOR_DELIVERY" {% if selected_status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Out for Delivery</option>
+                        <option value="DELIVERED" {% if selected_status == 'DELIVERED' %}selected{% endif %}>Delivered (POD)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="mode" class="form-select">
+                        <option value="">All Transport Modes</option>
+                        <option value="AIR_FREIGHT" {% if selected_mode == 'AIR_FREIGHT' %}selected{% endif %}>Air Freight</option>
+                        <option value="OCEAN_FCL" {% if selected_mode == 'OCEAN_FCL' %}selected{% endif %}>Ocean FCL</option>
+                        <option value="OCEAN_LCL" {% if selected_mode == 'OCEAN_LCL' %}selected{% endif %}>Ocean LCL</option>
+                        <option value="ROAD_FTL" {% if selected_mode == 'ROAD_FTL' %}selected{% endif %}>Road FTL</option>
+                        <option value="ROAD_LTL" {% if selected_mode == 'ROAD_LTL' %}selected{% endif %}>Road LTL</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Filter</button>
+                    <a href="{% url 'logistics_3pl:consignment_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tracking Number</th>
+                            <th>Mode</th>
+                            <th>Carrier</th>
+                            <th>Origin / Destination</th>
+                            <th>Gross Wt</th>
+                            <th>Chargeable Wt</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in consignments %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'logistics_3pl:consignment_detail' c.id %}" class="fw-bold">{{ c.tracking_number }}</a>
+                                <div class="small text-muted">{{ c.booking_date|date:"Y-m-d H:i" }}</div>
+                            </td>
+                            <td><span class="badge bg-secondary">{{ c.transport_mode }}</span></td>
+                            <td>{{ c.carrier.name }}</td>
+                            <td>
+                                <div><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ c.origin_hub }}</div>
+                                <div><i class="bi bi-flag-fill text-success me-1"></i>{{ c.destination_hub }}</div>
+                            </td>
+                            <td>{{ c.actual_gross_weight_kg }} kg</td>
+                            <td class="fw-bold text-primary">{{ c.chargeable_weight_kg }} kg</td>
+                            <td>
+                                <span class="badge {% if c.status == 'DELIVERED' %}bg-success{% elif c.status == 'IN_TRANSIT' %}bg-info{% elif c.status == 'EXCEPTION' or c.status == 'IN_CUSTOMS' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ c.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'logistics_3pl:consignment_detail' c.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'logistics_3pl:consignment_awb_slip' c.id %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-file-earmark-pdf"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No consignments found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
