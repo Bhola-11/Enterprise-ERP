@@ -1,0 +1,98 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-plus-circle text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Register capital asset and auto-generate depreciation lifecycle schedule</p>
+        </div>
+        <a href="{% url 'fixed_assets_depr:asset_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Register
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-9 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary"><i class="bi bi-tag me-2"></i>Asset Identification</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Asset Tag / Code *</label>
+                        {{ form.asset_tag }}
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Asset Description *</label>
+                        {{ form.asset_name }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Asset Category *</label>
+                        {{ form.category_name }}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary mt-4"><i class="bi bi-currency-dollar me-2"></i>Valuation & Depreciation Rules</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Acquisition Date *</label>
+                        {{ form.acquisition_date }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Acquisition Cost ($) *</label>
+                        {{ form.acquisition_cost }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Salvage Value ($)</label>
+                        {{ form.salvage_value }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Useful Life (Months) *</label>
+                        {{ form.useful_life_months }}
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Depreciation Method *</label>
+                        {{ form.depreciation_method }}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary mt-4"><i class="bi bi-journal-bookmark me-2"></i>General Ledger Accounting</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Asset Capital Account *</label>
+                        {{ form.asset_gl_account }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Accumulated Depr Account *</label>
+                        {{ form.accumulated_depr_gl_account }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Depreciation Expense Account *</label>
+                        {{ form.depreciation_expense_gl_account }}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary mt-4"><i class="bi bi-geo-alt me-2"></i>Location & Metadata</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Location / Facility</label>
+                        {{ form.location_facility }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Notes / Serial Numbers</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'fixed_assets_depr:asset_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i> Register Asset & Generate Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

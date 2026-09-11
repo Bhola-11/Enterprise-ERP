@@ -1,0 +1,112 @@
+﻿{% extends 'base.html' %}
+{% block title %}Asset Register - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-card-checklist text-primary me-2"></i>Fixed Asset Capital Register</h2>
+            <p class="text-muted mb-0">Complete audit register of plant, property, robotics, and IT capital assets</p>
+        </div>
+        <div>
+            <a href="{% url 'fixed_assets_depr:asset_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Register Capital Asset
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search by asset tag, name, facility...">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">-- All Statuses --</option>
+                        <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active in Service</option>
+                        <option value="FULLY_DEPRECIATED" {% if status_filter == 'FULLY_DEPRECIATED' %}selected{% endif %}>Fully Depreciated</option>
+                        <option value="IMPAIRED" {% if status_filter == 'IMPAIRED' %}selected{% endif %}>Impaired</option>
+                        <option value="DISPOSED" {% if status_filter == 'DISPOSED' %}selected{% endif %}>Disposed / Derecognized</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">-- All Categories --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+                    <a href="{% url 'fixed_assets_depr:asset_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assets List Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Asset Tag</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Method</th>
+                            <th>Acquisition Cost</th>
+                            <th>Accumulated Depr</th>
+                            <th>Net Book Value</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in assets %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark border fw-bold">{{ a.asset_tag }}</span></td>
+                            <td>
+                                <div class="fw-bold">{{ a.asset_name }}</div>
+                                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ a.location_facility }}</small>
+                            </td>
+                            <td>{{ a.category_name }}</td>
+                            <td><span class="badge bg-secondary">{{ a.get_depreciation_method_display }}</span></td>
+                            <td class="fw-bold">${{ a.acquisition_cost|floatformat:2 }}</td>
+                            <td class="text-danger fw-bold">-${{ a.accumulated_depreciation|floatformat:2 }}</td>
+                            <td class="text-success fw-bold fs-6">${{ a.net_book_value|floatformat:2 }}</td>
+                            <td>
+                                {% if a.status == 'ACTIVE' %}
+                                <span class="badge bg-success">Active</span>
+                                {% elif a.status == 'IMPAIRED' %}
+                                <span class="badge bg-warning text-dark">Impaired</span>
+                                {% elif a.status == 'FULLY_DEPRECIATED' %}
+                                <span class="badge bg-secondary">Fully Depr</span>
+                                {% else %}
+                                <span class="badge bg-dark">{{ a.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'fixed_assets_depr:asset_detail' a.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-folder2-open me-1"></i> Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No capital assets found matching query criteria.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

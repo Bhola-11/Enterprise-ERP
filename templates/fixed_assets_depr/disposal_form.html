@@ -1,0 +1,43 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-box-arrow-right text-danger me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Asset derecognition, scrapping, or sale with gain/loss computation</p>
+        </div>
+        <a href="{% url 'fixed_assets_depr:asset_detail' asset.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Asset
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-7 mx-auto">
+        <div class="card-body p-4">
+            <div class="alert alert-warning mb-4">
+                <strong>Current Carrying Net Book Value:</strong> ${{ asset.net_book_value }}<br>
+                <small>Disposing this asset will derecognize it from the active asset register and post gain/loss.</small>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sale Proceeds / Salvage Recovered ($) *</label>
+                    {{ form.sale_proceeds }}
+                    <small class="text-muted">Enter 0.00 if the asset is being scrapped or written off.</small>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Purchaser / Salvage Buyer (Optional)</label>
+                    {{ form.buyer_name }}
+                </div>
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'fixed_assets_depr:asset_detail' asset.id %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash3 me-1"></i> Confirm Asset Derecognition
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+﻿{% extends 'base.html' %}
+{% block title %}Fixed Assets & Capital Depreciation - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-building-gear text-primary me-2"></i>Fixed Assets & Capital Depreciation</h2>
+            <p class="text-muted mb-0">IAS 16 Property Plant & Equipment, MACRS Accelerated Schedules & IAS 36 Impairment Engine</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'fixed_assets_depr:asset_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-list-columns-reverse me-1"></i> Asset Register
+            </a>
+            <a href="{% url 'fixed_assets_depr:asset_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Register New Asset
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Total Capital Assets</div>
+                            <div class="fs-3 fw-bold">{{ total_assets }}</div>
+                            <div class="small text-white-75">{{ active_assets }} in active service</div>
+                        </div>
+                        <i class="bi bi-hdd-stack fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-dark text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Acquisition Cost Basis</div>
+                            <div class="fs-3 fw-bold">${{ total_cost|floatformat:2 }}</div>
+                            <div class="small text-white-75">Gross capital investment</div>
+                        </div>
+                        <i class="bi bi-cash-stack fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Net Book Value (NBV)</div>
+                            <div class="fs-3 fw-bold">${{ total_nbv|floatformat:2 }}</div>
+                            <div class="small text-white-75">Current carrying balance</div>
+                        </div>
+                        <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-muted text-uppercase fw-semibold">Accumulated Depreciation</div>
+                            <div class="fs-3 fw-bold">${{ total_accum|floatformat:2 }}</div>
+                            <div class="small text-muted">Total recognized amortization</div>
+                        </div>
+                        <i class="bi bi-pie-chart-fill fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Capital Assets Table -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-cpu text-primary me-2"></i>Fixed Capital Assets</h5>
+                    <a href="{% url 'fixed_assets_depr:asset_list' %}" class="btn btn-sm btn-outline-primary">View Full Register</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Asset Tag</th>
+                                    <th>Name & Category</th>
+                                    <th>Acquired</th>
+                                    <th>Cost</th>
+                                    <th>Net Book Value</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in recent_assets %}
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border fw-bold">{{ a.asset_tag }}</span></td>
+                                    <td>
+                                        <div class="fw-bold">{{ a.asset_name }}</div>
+                                        <small class="text-muted">{{ a.category_name }} &bull; {{ a.location_facility }}</small>
+                                    </td>
+                                    <td>{{ a.acquisition_date }}</td>
+                                    <td class="fw-bold">${{ a.acquisition_cost|floatformat:2 }}</td>
+                                    <td class="fw-bold text-success">${{ a.net_book_value|floatformat:2 }}</td>
+                                    <td>
+                                        {% if a.status == 'ACTIVE' %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% elif a.status == 'IMPAIRED' %}
+                                        <span class="badge bg-warning text-dark">Impaired</span>
+                                        {% elif a.status == 'FULLY_DEPRECIATED' %}
+                                        <span class="badge bg-secondary">Fully Depr</span>
+                                        {% else %}
+                                        <span class="badge bg-dark">{{ a.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'fixed_assets_depr:asset_detail' a.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No fixed assets registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Depreciation Schedule Runs -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-calendar-check text-warning me-2"></i>Upcoming Depreciation Charges</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for p in pending_depr_periods %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">{{ p.asset.asset_tag }}</div>
+                                <small class="text-muted">Due: {{ p.period_date }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary fs-6">${{ p.depreciation_amount }}</span>
+                                <form method="post" action="{% url 'fixed_assets_depr:post_period' p.asset.id p.id %}" class="d-inline ms-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Post</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted">All scheduled depreciation periods are posted.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- IAS 36 & Disposals Feed -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-activity text-info me-2"></i>Recent Valuations & Disposals</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush small">
+                        {% for imp in recent_impairments %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <strong class="text-warning"><i class="bi bi-exclamation-diamond me-1"></i>IAS 36 Impairment</strong>
+                                <span class="text-muted">{{ imp.test_date }}</span>
+                            </div>
+                            <div>{{ imp.asset.asset_tag }}: Loss ${{ imp.impairment_loss }} (Carrying: ${{ imp.recoverable_amount }})</div>
+                        </div>
+                        {% endfor %}
+                        {% for disp in recent_disposals %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <strong class="text-danger"><i class="bi bi-box-arrow-right me-1"></i>Asset Disposed</strong>
+                                <span class="text-muted">{{ disp.disposal_date }}</span>
+                            </div>
+                            <div>{{ disp.asset.asset_tag }}: Proceeds ${{ disp.sale_proceeds }} (Gain/Loss: ${{ disp.gain_loss_amount }})</div>
+                        </div>
+                        {% endfor %}
+                        {% if not recent_impairments and not recent_disposals %}
+                        <div class="p-3 text-center text-muted">No impairment tests or disposals logged.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

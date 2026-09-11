@@ -1,0 +1,43 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-exclamation-triangle text-warning me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">IAS 36 Impairment testing and write-down recognition</p>
+        </div>
+        <a href="{% url 'fixed_assets_depr:asset_detail' asset.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Asset
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-7 mx-auto">
+        <div class="card-body p-4">
+            <div class="alert alert-info mb-4">
+                <strong>Current Net Book Value:</strong> ${{ asset.net_book_value }} &bull; 
+                <strong>Acquisition Cost:</strong> ${{ asset.acquisition_cost }}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">New Assessed Recoverable Amount ($) *</label>
+                    {{ form.recoverable_amount }}
+                    <small class="text-muted">Higher of Fair Value less Costs of Disposal and Value in Use.</small>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Impairment Justification & Reason *</label>
+                    {{ form.reason }}
+                </div>
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'fixed_assets_depr:asset_detail' asset.id %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-warning px-4">
+                        <i class="bi bi-check-circle me-1"></i> Execute Impairment Write-Down
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
