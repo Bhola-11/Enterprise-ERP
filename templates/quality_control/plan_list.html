@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-card-checklist me-2 text-primary"></i>Inspection Plans & AQL Standards</h1>
+            <p class="text-muted mb-0">Quality test criteria, tolerance boundaries and sampling inspection standards.</p>
+        </div>
+        <a href="{% url 'quality_control:plan_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Plan</a>
+    </div>
+
+    <div class="row g-3">
+        {% for p in plans %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold text-primary mb-0">{{ p.name }}</h5>
+                        <span class="badge bg-secondary">{{ p.code }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted mb-2">Gate: <strong>{{ p.get_category_display }}</strong></div>
+                    <div class="small mb-2">Standard: <span class="badge bg-dark">{{ p.get_sampling_standard_display }}</span></div>
+                    <div class="small mb-3">Characteristics Measured: <strong class="text-primary">{{ p.chars_count }} Parameters</strong></div>
+                    <p class="small text-muted mb-0">{{ p.description|default:"Standard quality control criteria." }}</p>
+                </div>
+                <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+                    <span class="badge {% if p.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if p.is_active %}Active Standard{% else %}Archived{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">No inspection plans defined.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

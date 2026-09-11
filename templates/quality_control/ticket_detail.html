@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0 text-gray-800">QC Ticket: {{ ticket.ticket_number }}</h1>
+                <span class="badge {% if ticket.disposition == 'ACCEPTED' %}bg-success{% elif ticket.disposition == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %} fs-6">
+                    {{ ticket.get_disposition_display }}
+                </span>
+            </div>
+            <p class="text-muted mb-0">Plan: <strong>{{ ticket.plan.name }}</strong> | Reference: <strong>{{ ticket.reference_code }}</strong></p>
+        </div>
+        <a href="{% url 'quality_control:ticket_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-info-circle me-1"></i>Sampling Metrics</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Total Batch Lot:</span>
+                            <span class="fw-bold">{{ ticket.lot_size }} Units</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Calculated Sample:</span>
+                            <span class="fw-bold text-primary">{{ ticket.sample_size }} Units</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Accepted Quantity:</span>
+                            <span class="fw-bold text-success">{{ ticket.accepted_quantity }} Units</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Rejected Quantity:</span>
+                            <span class="fw-bold text-danger">{{ ticket.rejected_quantity }} Units</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted">Inspector:</span>
+                            <span>{{ ticket.inspector.username|default:"Unassigned" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if ncrs %}
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white py-2">
+                    <h6 class="m-0"><i class="bi bi-exclamation-triangle me-1"></i>Non-Conformance Reports (NCR)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for n in ncrs %}
+                        <li class="list-group-item">
+                            <a href="{% url 'quality_control:ncr_detail' n.id %}" class="fw-bold text-danger">{{ n.ncr_number }}</a>
+                            <div class="small">{{ n.defect_title }}</div>
+                            <span class="badge bg-secondary mt-1">{{ n.get_status_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="m-0"><i class="bi bi-check2-circle me-1"></i>Record Quality Verdict & Sample Disposition</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Accepted Quantity *</label>
+                                {{ verdict_form.accepted_quantity }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Rejected Quantity *</label>
+                                {{ verdict_form.rejected_quantity }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Inspector Observation Notes</label>
+                                {{ verdict_form.inspector_notes }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-success px-4"><i class="bi bi-check-circle me-1"></i>Certify & Submit QC Disposition</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

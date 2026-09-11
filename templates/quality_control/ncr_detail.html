@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0 text-gray-800">NCR: {{ ncr.ncr_number }}</h1>
+                <span class="badge bg-danger fs-6">{{ ncr.get_defect_severity_display }}</span>
+            </div>
+            <p class="text-muted mb-0">QC Ticket: <strong>{{ ncr.ticket.ticket_number }}</strong> ({{ ncr.ticket.reference_code }})</p>
+        </div>
+        <a href="{% url 'quality_control:ncr_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to NCRs</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-danger"><i class="bi bi-shield-x me-1"></i>Defect Description & Root Cause</h6>
+                </div>
+                <div class="card-body">
+                    <h5 class="fw-bold mb-2">{{ ncr.defect_title }}</h5>
+                    <p class="text-muted">{{ ncr.defect_description }}</p>
+                    <hr>
+                    <h6 class="fw-bold text-dark">Containment Action:</h6>
+                    <p class="text-secondary">{{ ncr.containment_action|default:"Quarantined on hold." }}</p>
+                    <h6 class="fw-bold text-dark">Root Cause Analysis (5-Why):</h6>
+                    <p class="text-secondary">{{ ncr.root_cause_analysis|default:"Investigation ongoing." }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="m-0"><i class="bi bi-plus-circle me-1"></i>Formulate CAPA Action Plan</h6>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Action Type *</label>
+                            {{ capa_form.action_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Action Description *</label>
+                            {{ capa_form.action_description }}
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Assigned Owner *</label>
+                                {{ capa_form.assigned_owner }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Target Due Date *</label>
+                                {{ capa_form.target_due_date }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-circle me-1"></i>Submit CAPA Action</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if capas %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-list-task me-1"></i>Assigned CAPA Tasks ({{ capas.count }})</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for c in capas %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-primary">{{ c.get_action_type_display }}</strong>
+                                <span class="badge bg-secondary">Due: {{ c.target_due_date|date:"d M Y" }}</span>
+                            </div>
+                            <div class="small mb-1">{{ c.action_description }}</div>
+                            <small class="text-muted">Owner: <strong>{{ c.assigned_owner }}</strong></small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
