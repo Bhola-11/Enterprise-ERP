@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Inventory Intelligence — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Inventory & Stock Ledger</h3>
+        <p class="text-muted small mb-0">SKU catalog, real-time stock levels, valuation, and immutable stock movement ledger.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'inventory:product_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Product SKU</a>
+        <a href="{% url 'inventory:movement_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left-right me-1"></i> Movement Ledger</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Active SKUs</div>
+            <h4 class="fw-bold my-1 text-primary">{{ total_products }} Items</h4>
+            <div class="small text-muted"><a href="{% url 'inventory:product_list' %}">Explore Catalog</a></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Total Inventory Value (FIFO/Avg)</div>
+            <h4 class="fw-bold my-1 text-success">${{ total_valuation|intcomma }}</h4>
+            <div class="small text-muted">Asset value on balance sheet</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card danger shadow-sm">
+            <div class="text-muted small">Low Stock Warnings</div>
+            <h4 class="fw-bold my-1 text-danger">{{ low_stock_count }} Items</h4>
+            <div class="small text-muted">Below configured reorder levels</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Stock Ledger Movements</h5>
+                <a href="{% url 'inventory:movement_list' %}" class="small text-decoration-none">Full Ledger</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Product SKU</th>
+                            <th>Movement</th>
+                            <th>Qty</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in recent_movements %}
+                        <tr>
+                            <td class="small text-muted">{{ mov.timestamp|date:"M d, H:i" }}</td>
+                            <td class="fw-semibold"><a href="{% url 'inventory:product_detail' mov.product.id %}">{{ mov.product.sku }}</a></td>
+                            <td><span class="badge badge-soft-primary small">{{ mov.get_movement_type_display }}</span></td>
+                            <td class="fw-bold">{{ mov.quantity }}</td>
+                            <td class="text-muted small">{{ mov.balance_after }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No movements recorded yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h5 class="fw-bold mb-0 text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock Alerts</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for p in low_stock_products %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ p.name }}</div>
+                        <div class="text-muted small">SKU: {{ p.sku }} &bull; Min: {{ p.reorder_level }}</div>
+                    </div>
+                    <span class="badge bg-danger fs-6">{{ p.current_stock }} remaining</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">All product stock levels are healthy!</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

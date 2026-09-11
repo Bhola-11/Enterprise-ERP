@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Purchasing Operations — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Purchasing & Vendor Supply Operations</h3>
+        <p class="text-muted small mb-0">Supplier management, Purchase Orders, Goods Receipt (GRN), and 3-way matching.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'purchasing:supplier_create' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-building-add me-1"></i> Add Supplier</a>
+        <a href="{% url 'purchasing:po_list' %}" class="btn btn-primary btn-sm"><i class="bi bi-cart-check me-1"></i> Purchase Orders</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total POs Issued</div>
+            <h4 class="fw-bold my-1 text-primary">{{ total_pos }}</h4>
+            <div class="small text-muted">{{ pending_pos }} Pending Approval</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Total Procurement Spend</div>
+            <h4 class="fw-bold my-1 text-dark">${{ total_spend|intcomma }}</h4>
+            <div class="small text-muted">Approved & received</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Active Approved Suppliers</div>
+            <h4 class="fw-bold my-1 text-success">{{ suppliers_count }}</h4>
+            <div class="small text-muted"><a href="{% url 'purchasing:supplier_list' %}">Supplier Registry</a></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Procurement Compliance</div>
+            <h4 class="fw-bold my-1 text-info">99.2%</h4>
+            <div class="small text-muted">Policy verified</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Purchase Orders</h5>
+                <a href="{% url 'purchasing:po_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>PO #</th>
+                            <th>Supplier</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in recent_pos %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'purchasing:po_detail' po.id %}">{{ po.po_number }}</a></td>
+                            <td class="small">{{ po.supplier.name }}</td>
+                            <td class="small text-muted">{{ po.order_date }}</td>
+                            <td class="fw-bold">${{ po.total_amount|intcomma }}</td>
+                            <td><span class="badge badge-soft-primary">{{ po.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No recent purchase orders</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Top Rated Suppliers</h5>
+                <a href="{% url 'purchasing:supplier_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for s in suppliers %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold text-dark">{{ s.name }}</div>
+                        <div class="text-muted small">{{ s.city }}, {{ s.country }} &bull; {{ s.payment_terms }}</div>
+                    </div>
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                        <i class="bi bi-star-fill text-warning me-1"></i>{{ s.rating }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No suppliers recorded</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

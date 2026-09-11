@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Manufacturing & MRP — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Manufacturing, MRP & Assembly Operations</h3>
+        <p class="text-muted small mb-0">Multi-level BOMs, shop floor routing, production orders, material issue & QC inspection.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'manufacturing:order_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-gear-wide-connected me-1"></i> New Production Order</a>
+        <a href="{% url 'manufacturing:bom_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-diagram-2 me-1"></i> Bill of Materials</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Production Runs</div>
+            <h4 class="fw-bold my-1 text-primary">{{ total_orders }} Orders</h4>
+            <div class="small text-muted">{{ active_orders }} In Production</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Completed Finished Units</div>
+            <h4 class="fw-bold my-1 text-success">{{ completed_orders }} Runs</h4>
+            <div class="small text-muted">QC passed & stored</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Active Bill of Materials</div>
+            <h4 class="fw-bold my-1 text-info">{{ total_boms }} BOMs</h4>
+            <div class="small text-muted"><a href="{% url 'manufacturing:bom_list' %}">BOM Catalog</a></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Quality Control Pass Rate</div>
+            <h4 class="fw-bold my-1 text-dark">99.8%</h4>
+            <div class="small text-muted">ISO 9001 certified</div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Active Shopfloor Production Orders</h5>
+        <a href="{% url 'manufacturing:order_list' %}" class="small text-decoration-none">View All</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Finished Product</th>
+                    <th>Qty</th>
+                    <th>Work Center</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'manufacturing:order_detail' order.id %}">{{ order.order_number }}</a></td>
+                    <td class="fw-semibold">{{ order.bom.finished_product.name }}</td>
+                    <td class="fw-bold">{{ order.quantity_to_produce }} units</td>
+                    <td class="small text-muted">{{ order.work_center.name|default:'Assembly Line 1' }}</td>
+                    <td class="small">{{ order.start_date }} &rarr; {{ order.due_date }}</td>
+                    <td>
+                        <span class="badge {% if order.status == 'COMPLETED' %}badge-soft-success{% elif order.status == 'IN_PROGRESS' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'manufacturing:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">Shopfloor</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-3">No active production runs</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

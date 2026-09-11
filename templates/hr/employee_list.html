@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Employee Directory — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Global Employee Directory</h3>
+        <p class="text-muted small mb-0">Staff members, departments, designations, and contact profiles.</p>
+    </div>
+    <a href="{% url 'hr:employee_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i> Onboard Employee</a>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Search by name, ID, email..." value="{{ search_query|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <select name="dept" class="form-select form-select-sm">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {% if selected_dept == d.id|stringformat:"i" %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Staff ID</th>
+                    <th>Full Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Branch</th>
+                    <th>Email / Phone</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'hr:employee_detail' emp.id %}" class="text-decoration-none">{{ emp.employee_id }}</a></td>
+                    <td class="fw-semibold">{{ emp.full_name }}</td>
+                    <td>{{ emp.department.name }}</td>
+                    <td class="small text-muted">{{ emp.designation.title }}</td>
+                    <td class="small">{{ emp.branch.name }}</td>
+                    <td class="small">{{ emp.email }}<br><span class="text-muted">{{ emp.phone }}</span></td>
+                    <td><span class="badge {% if emp.status == 'ACTIVE' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">{{ emp.get_status_display }}</span></td>
+                    <td>
+                        <a href="{% url 'hr:employee_detail' emp.id %}" class="btn btn-sm btn-outline-primary">Profile</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No employees found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

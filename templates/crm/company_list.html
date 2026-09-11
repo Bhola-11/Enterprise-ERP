@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Enterprise Accounts — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Company & Client Accounts</h3>
+        <p class="text-muted small mb-0">Enterprise accounts, industries, annual revenues, and active customer portfolios.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Industry</th>
+                    <th>Location</th>
+                    <th>Annual Revenue</th>
+                    <th>Contacts</th>
+                    <th>Deals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comp in page_obj %}
+                <tr>
+                    <td class="fw-semibold">{{ comp.name }}</td>
+                    <td class="small">{{ comp.industry|default:'General' }}</td>
+                    <td class="small">{{ comp.city }}, {{ comp.country }}</td>
+                    <td class="fw-semibold">${{ comp.annual_revenue|intcomma }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ comp.contacts_count }} Contacts</span></td>
+                    <td><span class="badge badge-soft-primary">{{ comp.opps_count }} Deals</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No companies registered</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

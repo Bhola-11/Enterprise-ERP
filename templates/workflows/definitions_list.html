@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Workflow Definitions — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Configured Workflow Policies & Routing Stages</h3>
+        <p class="text-muted small mb-0">Multi-tier escalation stages, role requirements, and automated approval thresholds.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for def in definitions %}
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">{{ def.name }}</h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ def.get_module_type_display }}</span>
+            </div>
+            <p class="text-muted small mb-3">{{ def.description|default:'Enterprise governance workflow policy.' }}</p>
+
+            <h6 class="fw-bold small text-uppercase text-muted border-bottom pb-2">Approval Sequence Stages</h6>
+            <div class="list-group list-group-flush mb-0">
+                {% for stg in def.stages.all %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div class="small">
+                        <span class="badge bg-light text-dark border me-2">Step {{ stg.step_number }}</span>
+                        <strong>{{ stg.name }}</strong>
+                    </div>
+                    <span class="badge bg-light text-muted small">{{ stg.required_role|default:'Designated Manager' }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted small py-2">No stages configured yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

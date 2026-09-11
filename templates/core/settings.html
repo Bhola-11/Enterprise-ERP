@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings & Integrations | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-sliders text-primary me-2"></i>Global System Settings & Integrations</h2>
+        <p class="text-muted">Platform parameters, external API connections, SMTP gateway, and enterprise integration keys.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- System Configuration -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-gear-wide-connected text-primary me-2"></i>System Parameters</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Parameter Key</th>
+                                <th>Value</th>
+                                <th>Group</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in settings_list %}
+                            <tr>
+                                <td>
+                                    <strong class="text-dark">{{ s.key }}</strong>
+                                    <br><small class="text-muted">{{ s.description }}</small>
+                                </td>
+                                <td><code class="text-primary">{{ s.value }}</code></td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ s.group_name }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">No dynamic settings defined. Default parameters are in effect.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integrations -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-plug text-primary me-2"></i>Connected Enterprise Gateways</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Provider</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Environment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in integrations %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ i.name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ i.provider }}</span></td>
+                                <td>
+                                    <span class="badge {% if i.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if i.is_active %}Connected{% else %}Disabled{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if i.is_sandbox %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                                        {% if i.is_sandbox %}Sandbox{% else %}Production{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No external integration adapters configured.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

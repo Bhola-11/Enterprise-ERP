@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications Hub | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-bell-fill text-primary me-2"></i>Notifications Hub</h2>
+        <p class="text-muted">Real-time alerts, system broadcasts, workflow approvals and transactional notices.</p>
+    </div>
+    <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
+        <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-check-all me-1"></i> Mark All as Read</a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-0">
+        <h6 class="fw-bold m-0 text-dark">All Notifications ({{ page_obj.paginator.count }})</h6>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="list-group list-group-flush">
+            {% for n in page_obj %}
+            <div class="list-group-item p-3 d-flex align-items-start justify-content-between {% if not n.is_read %}bg-light border-start border-4 border-primary{% endif %}">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle p-2 bg-white shadow-sm border">
+                        {% if n.notification_type == 'CRITICAL' or n.notification_type == 'ERROR' %}
+                            <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                        {% elif n.notification_type == 'WARNING' %}
+                            <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
+                        {% elif n.notification_type == 'APPROVAL' %}
+                            <i class="bi bi-check2-circle text-info fs-5"></i>
+                        {% elif n.notification_type == 'SUCCESS' %}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-bell text-primary fs-5"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-secondary-subtle text-secondary">{{ n.module_name|default:"SYSTEM" }}</span>
+                            <span class="badge {% if n.notification_type == 'CRITICAL' %}bg-danger{% elif n.notification_type == 'WARNING' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ n.notification_type }}</span>
+                            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ n.created_at|timesince }} ago</small>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">{{ n.title }}</h6>
+                        <p class="text-muted mb-2 small">{{ n.message }}</p>
+                        {% if n.link %}
+                            <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary py-0 px-2 small">View Details <i class="bi bi-arrow-right"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    {% if not n.is_read %}
+                    <a href="{% url 'notifications:mark_as_read' n.id %}" class="btn btn-sm btn-light border text-muted" title="Mark Read"><i class="bi bi-check2"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+            <h6>No notifications available</h6>
+            <p class="small">You're all caught up! System alerts and workflow notices will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Sales Invoices — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Sales Invoices & Billing</h3>
+        <p class="text-muted small mb-0">Commercial invoices, payment collection records, and accounts receivable tracking.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Customer</th>
+                    <th>Invoice Date</th>
+                    <th>Due Date</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Balance Due</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in page_obj %}
+                <tr>
+                    <td class="fw-semibold"><a href="{% url 'sales:invoice_detail' inv.id %}">{{ inv.invoice_number }}</a></td>
+                    <td>{{ inv.customer }}</td>
+                    <td class="small">{{ inv.invoice_date }}</td>
+                    <td class="small text-muted">{{ inv.due_date }}</td>
+                    <td class="fw-bold">${{ inv.total_amount|intcomma }}</td>
+                    <td class="text-success">${{ inv.paid_amount|intcomma }}</td>
+                    <td class="fw-bold text-danger">${{ inv.balance_due|intcomma }}</td>
+                    <td>
+                        <span class="badge {% if inv.status == 'PAID' %}badge-soft-success{% elif inv.status == 'PARTIAL' %}badge-soft-warning{% else %}badge-soft-danger{% endif %}">
+                            {{ inv.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No invoices generated</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

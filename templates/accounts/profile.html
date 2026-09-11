@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile & Security | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-person-badge text-primary me-2"></i>My Account & Profile</h2>
+        <p class="text-muted">Manage your personal credentials, organizational assignments, and security preferences.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <!-- Personal Info -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-person me-2 text-primary"></i>Personal & Contact Details</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="update_profile" value="1">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">First Name</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Last Name</label>
+                            {{ user_form.last_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Email Address</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" readonly disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Phone Number</label>
+                            {{ user_form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">System Role</label>
+                            <input type="text" class="form-control" value="{{ user.get_role_display }}" readonly disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Department</label>
+                            {{ user_form.department }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Job Title</label>
+                            {{ profile_form.job_title }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Bio</label>
+                            {{ profile_form.bio }}
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Update Profile</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Security & Password -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-shield-lock me-2 text-warning"></i>Security & Credentials</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="change_password" value="1">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Current Password</label>
+                            <input type="password" name="old_password" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">New Password</label>
+                            <input type="password" name="new_password1" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Confirm New Password</label>
+                            <input type="password" name="new_password2" class="form-control" required>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-warning"><i class="bi bi-key me-1"></i> Change Password</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login History / Telemetry -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ user.first_name|default:user.email|first|upper }}
+                </div>
+                <h5 class="fw-bold text-dark mb-0">{{ user.get_full_name|default:user.username }}</h5>
+                <span class="badge bg-primary-subtle text-primary mt-1">{{ user.get_role_display }}</span>
+                <p class="text-muted small mt-2">{{ user.email }}</p>
+                <hr>
+                <div class="text-start small">
+                    <p class="mb-1 text-muted"><strong>Last Login IP:</strong> {{ user.last_login_ip|default:"127.0.0.1" }}</p>
+                    <p class="mb-0 text-muted"><strong>Joined:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-clock-history me-2 text-info"></i>Recent Access History</h6>
+            </div>
+            <div class="list-group list-group-flush small">
+                {% for log in recent_logins %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+                    <div>
+                        <span class="font-monospace text-muted">{{ log.ip_address }}</span>
+                        <br><small class="text-muted">{{ log.timestamp|date:"M d, H:i" }}</small>
+                    </div>
+                    <span class="badge {% if log.status == 'SUCCESS' %}bg-success{% else %}bg-danger{% endif %}">
+                        {{ log.status }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="p-3 text-muted text-center">No prior session records.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Suppliers Directory — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Approved Vendor & Supplier Directory</h3>
+        <p class="text-muted small mb-0">Manage strategic vendor accounts, payment terms, and vendor performance ratings.</p>
+    </div>
+    <a href="{% url 'purchasing:supplier_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Supplier</a>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-6">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Search suppliers by name, contact, city..." value="{{ request.GET.q|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Search</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Supplier Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Location</th>
+                    <th>Payment Terms</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for supp in page_obj %}
+                <tr>
+                    <td class="fw-semibold">{{ supp.name }}</td>
+                    <td class="small">{{ supp.contact_person|default:'—' }}</td>
+                    <td><a href="mailto:{{ supp.email }}" class="text-decoration-none">{{ supp.email }}</a></td>
+                    <td class="small">{{ supp.phone }}</td>
+                    <td class="small">{{ supp.city }}, {{ supp.country }}</td>
+                    <td class="small">{{ supp.payment_terms }}</td>
+                    <td><span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25"><i class="bi bi-star-fill text-warning me-1"></i>{{ supp.rating }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No suppliers found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

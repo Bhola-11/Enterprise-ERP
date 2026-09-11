@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Report & Analytics Center | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Enterprise Intelligence & Report Center</h2>
+        <p class="text-muted">Exportable operational, commercial, and financial intelligence summaries with audit-grade fidelity.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sales Reports -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex p-3 mb-3">
+                    <i class="bi bi-cart-check-fill fs-2"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Commercial & Sales Intelligence</h5>
+                <p class="text-muted small mb-4">Analyze order conversion rates, revenue by customer, quotation pipelines, and historical sales trends.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:sales_report' %}" class="btn btn-primary"><i class="bi bi-bar-chart me-1"></i> View Sales Report</a>
+                    <a href="{% url 'reports:sales_report' %}?export=csv" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i> Export Full CSV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory & Warehouse Reports -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-info-subtle text-info d-inline-flex p-3 mb-3">
+                    <i class="bi bi-boxes fs-2"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Inventory & Stock Valuation</h5>
+                <p class="text-muted small mb-4">Review total stock on hand, valuation at cost, reorder alert thresholds, and movement velocity logs.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:inventory_report' %}" class="btn btn-info text-white"><i class="bi bi-pie-chart me-1"></i> View Inventory Report</a>
+                    <a href="{% url 'reports:inventory_report' %}?export=csv" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i> Export Inventory CSV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Reports -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex p-3 mb-3">
+                    <i class="bi bi-bank fs-2"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Financial & General Ledger</h5>
+                <p class="text-muted small mb-4">Double-entry ledger balances, fiscal period revenue vs expense analysis, and Trial Balance audit summaries.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:financial_report' %}" class="btn btn-success"><i class="bi bi-currency-dollar me-1"></i> View Financial Report</a>
+                    <a href="{% url 'reports:financial_report' %}?export=csv" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download me-1"></i> Export General Ledger CSV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-white py-3 border-0">
+        <h6 class="fw-bold m-0 text-dark">Custom SQL & Automated Scheduler Status</h6>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info border-0 d-flex align-items-center mb-0">
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+            <div>
+                <strong>Scheduled Distribution:</strong> Automated month-end report compilation and management packs are configured to dispatch to executives on the 1st of every calendar month.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

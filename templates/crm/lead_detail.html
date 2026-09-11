@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Lead: {{ lead }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">{{ lead.first_name }} {{ lead.last_name }}</h3>
+        <p class="text-muted small mb-0">{{ lead.company_name|default:'Individual Account' }} &bull; Created {{ lead.created_at|date:"M d, Y" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if lead.status != 'CONVERTED' %}
+        <a href="{% url 'crm:lead_convert' lead.id %}" class="btn btn-success btn-sm"><i class="bi bi-arrow-repeat me-1"></i> Convert to Opportunity</a>
+        {% endif %}
+        <a href="{% url 'crm:lead_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to Leads</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Lead Information</h5>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Status</span>
+                <span class="badge badge-soft-info">{{ lead.get_status_display }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Lead Score</span>
+                <div class="fw-bold text-primary fs-5">{{ lead.lead_score }} / 100</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Estimated Budget</span>
+                <div class="fw-bold">${{ lead.estimated_budget|intcomma }}</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Contact Details</span>
+                <div><i class="bi bi-envelope me-1 text-muted"></i>{{ lead.email }}</div>
+                <div><i class="bi bi-telephone me-1 text-muted"></i>{{ lead.phone }}</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Assigned Representative</span>
+                <div>{{ lead.assigned_to.get_full_name|default:'Unassigned' }}</div>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Notes</span>
+                <p class="small text-muted mb-0">{{ lead.notes|default:'No notes added yet.' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Log Sales Activity / Touchpoint</h5>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Activity Type</label>
+                        {{ activity_form.activity_type }}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small fw-semibold">Subject / Summary</label>
+                        {{ activity_form.subject }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Discussion Notes / Outcome</label>
+                    {{ activity_form.details }}
+                </div>
+                <button type="submit" name="add_activity" class="btn btn-primary btn-sm">Log Activity</button>
+            </form>
+        </div>
+
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Activity Timeline</h5>
+            <div class="list-group list-group-flush">
+                {% for act in activities %}
+                <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge badge-soft-primary">{{ act.get_activity_type_display }}</span>
+                        <span class="text-muted small">{{ act.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="fw-semibold">{{ act.subject }}</div>
+                    <div class="small text-muted mt-1">{{ act.details }}</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">Logged by {{ act.created_by.get_full_name|default:act.created_by.email }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4 small">No activities recorded yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold m-0 text-dark"><i class="bi bi-person-gear text-primary me-2"></i>{{ title }}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Email Address</label>
+                            {{ form.email }}
+                        </div>
+                        {% if form.username %}
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Username</label>
+                            {{ form.username }}
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Enterprise Role</label>
+                            {{ form.role }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Department</label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Phone Number</label>
+                            {{ form.phone }}
+                        </div>
+                        {% if form.password1 %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Password</label>
+                            {{ form.password1 }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Confirm Password</label>
+                            {{ form.password2 }}
+                        </div>
+                        {% endif %}
+                        {% if form.is_active %}
+                        <div class="col-12 mt-3">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label small fw-bold ms-1" for="{{ form.is_active.id_for_label }}">Active Account Status</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-12 text-end mt-4 d-flex justify-content-end gap-2">
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-light border">Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save User</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Support Tickets — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Helpdesk Tickets Queue</h3>
+        <p class="text-muted small mb-0">Customer support issues, technical bugs, priority tags, and response SLAs.</p>
+    </div>
+    <a href="{% url 'support:ticket_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Open Ticket</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Customer</th>
+                    <th>Subject</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned Agent</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'support:ticket_detail' t.id %}">{{ t.ticket_id }}</a></td>
+                    <td class="small fw-semibold">{{ t.customer }}</td>
+                    <td class="fw-semibold">{{ t.subject }}</td>
+                    <td class="small text-muted">{{ t.category.name }}</td>
+                    <td>
+                        <span class="badge {% if t.priority == 'URGENT' %}badge-soft-danger{% elif t.priority == 'HIGH' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">
+                            {{ t.get_priority_display }}
+                        </span>
+                    </td>
+                    <td><span class="badge badge-soft-info">{{ t.get_status_display }}</span></td>
+                    <td class="small">{{ t.assigned_to.get_full_name|default:'Unassigned' }}</td>
+                    <td class="small text-muted">{{ t.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'support:ticket_detail' t.id %}" class="btn btn-sm btn-outline-primary">Resolve</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4">No tickets in queue</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Journal Entry: {{ entry.entry_number }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Journal Entry #{{ entry.entry_number }}</h3>
+        <p class="text-muted small mb-0">Date: {{ entry.date }} &bull; Status: <span class="badge {% if entry.status == 'POSTED' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">{{ entry.status }}</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if entry.status == 'DRAFT' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" name="post_entry" class="btn btn-success btn-sm"><i class="bi bi-lock me-1"></i> Post to General Ledger</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'accounting:journal_entries' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <div class="row g-4 mb-4 border-bottom pb-3">
+        <div class="col-md-6">
+            <h6 class="fw-bold text-muted text-uppercase small">Voucher Details</h6>
+            <div><strong>Reference Document:</strong> {{ entry.reference|default:'None' }}</div>
+            <div><strong>Created By:</strong> {{ entry.created_by.get_full_name|default:entry.created_by.email }}</div>
+            <div><strong>Created At:</strong> {{ entry.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+        <div class="col-md-6">
+            <h6 class="fw-bold text-muted text-uppercase small">Narration / Explanation</h6>
+            <p class="small text-muted">{{ entry.narration }}</p>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>GL Account Code</th>
+                    <th>Account Title</th>
+                    <th>Description</th>
+                    <th class="text-end">Debit ($)</th>
+                    <th class="text-end">Credit ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for itm in entry.items.all %}
+                <tr>
+                    <td class="fw-bold font-monospace text-primary">{{ itm.account.code }}</td>
+                    <td class="fw-semibold">{{ itm.account.name }}</td>
+                    <td class="small text-muted">{{ itm.description|default:'—' }}</td>
+                    <td class="text-end fw-semibold">{% if itm.debit > 0 %}${{ itm.debit|intcomma }}{% else %}—{% endif %}</td>
+                    <td class="text-end fw-semibold">{% if itm.credit > 0 %}${{ itm.credit|intcomma }}{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-primary">
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Total Balanced:</td>
+                    <td class="text-end fw-bold fs-6">${{ entry.total_debit|intcomma }}</td>
+                    <td class="text-end fw-bold fs-6">${{ entry.total_credit|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Fixed Assets Registry — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Fixed Asset Registry & Depreciation</h3>
+        <p class="text-muted small mb-0">Track corporate fixed assets, employee assignments, depreciation schedules, and maintenance.</p>
+    </div>
+    <a href="{% url 'assets:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Register Asset</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="text-muted small">Total Asset Acquisition Cost</div>
+            <h4 class="fw-bold text-dark my-1">${{ total_cost|intcomma }}</h4>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="text-muted small">Current Net Book Value (NBV)</div>
+            <h4 class="fw-bold text-success my-1">${{ total_val|intcomma }}</h4>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Asset Tag</th>
+                    <th>Asset Name</th>
+                    <th>Category</th>
+                    <th>Acquisition Cost</th>
+                    <th>Book Value</th>
+                    <th>Assigned Staff</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ast in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'assets:detail' ast.id %}" class="text-decoration-none">{{ ast.asset_tag }}</a></td>
+                    <td class="fw-semibold">{{ ast.name }}</td>
+                    <td class="small">{{ ast.category.name }}</td>
+                    <td class="small text-muted">${{ ast.purchase_cost|intcomma }}</td>
+                    <td class="fw-bold text-success">${{ ast.current_value|intcomma }}</td>
+                    <td class="small">{{ ast.assigned_to.full_name|default:'In Storage' }}</td>
+                    <td class="small text-muted">{{ ast.location }}</td>
+                    <td>
+                        <span class="badge {% if ast.status == 'ASSIGNED' %}badge-soft-primary{% elif ast.status == 'IN_STORE' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">
+                            {{ ast.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No fixed assets registered</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

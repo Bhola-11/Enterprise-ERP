@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Executive Intelligence Dashboard — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h3 class="fw-bold mb-1">Executive Operations Dashboard</h3>
+        <p class="text-muted small mb-0">Cross-departmental telemetry, financial performance, and real-time operational status.</p>
+    </div>
+    <!-- Time Period Filter -->
+    <div class="btn-group btn-group-sm bg-white border p-1 rounded-3 shadow-sm" role="group">
+        <a href="?period=today" class="btn btn-sm {% if period == 'today' %}btn-primary{% else %}btn-light{% endif %}">Today</a>
+        <a href="?period=this_week" class="btn btn-sm {% if period == 'this_week' %}btn-primary{% else %}btn-light{% endif %}">This Week</a>
+        <a href="?period=this_month" class="btn btn-sm {% if period == 'this_month' %}btn-primary{% else %}btn-light{% endif %}">This Month</a>
+        <a href="?period=this_quarter" class="btn btn-sm {% if period == 'this_quarter' %}btn-primary{% else %}btn-light{% endif %}">This Quarter</a>
+        <a href="?period=this_year" class="btn btn-sm {% if period == 'this_year' %}btn-primary{% else %}btn-light{% endif %}">This Year</a>
+    </div>
+</div>
+
+<!-- Primary Financial & Business KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card p-3 kpi-card success shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Net Profit (Margin)</span>
+                    <h4 class="fw-bold my-1 text-success">${{ net_profit|intcomma }}</h4>
+                    <span class="badge badge-soft-success small"><i class="bi bi-graph-up-arrow me-1"></i>{{ profit_margin }}% Net Margin</span>
+                </div>
+                <div class="p-2 bg-success bg-opacity-10 rounded text-success">
+                    <i class="fa-solid fa-sack-dollar fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card p-3 kpi-card shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Total Revenue</span>
+                    <h4 class="fw-bold my-1 text-primary">${{ total_revenue|intcomma }}</h4>
+                    <span class="text-muted small">Sales Vol: ${{ sales_volume|intcomma }}</span>
+                </div>
+                <div class="p-2 bg-primary bg-opacity-10 rounded text-primary">
+                    <i class="fa-solid fa-arrow-trend-up fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card p-3 kpi-card warning shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Total Expenses</span>
+                    <h4 class="fw-bold my-1 text-dark">${{ total_expenses|intcomma }}</h4>
+                    <span class="text-muted small">Purchases: ${{ purchase_volume|intcomma }}</span>
+                </div>
+                <div class="p-2 bg-warning bg-opacity-10 rounded text-warning">
+                    <i class="fa-solid fa-receipt fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card p-3 kpi-card info shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold">Inventory Valuation</span>
+                    <h4 class="fw-bold my-1 text-info">${{ inventory_val|intcomma }}</h4>
+                    {% if low_stock_count > 0 %}
+                    <span class="badge badge-soft-danger small"><i class="bi bi-exclamation-triangle me-1"></i>{{ low_stock_count }} Low Stock SKUs</span>
+                    {% else %}
+                    <span class="badge badge-soft-success small">Stock Levels Optimal</span>
+                    {% endif %}
+                </div>
+                <div class="p-2 bg-info bg-opacity-10 rounded text-info">
+                    <i class="fa-solid fa-boxes-stacked fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Operational Metrics Bar -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="p-3 bg-primary bg-opacity-10 rounded-circle text-primary me-3">
+                    <i class="fa-solid fa-users fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Workforce Attendance</div>
+                    <div class="fs-5 fw-bold">{{ today_present }} / {{ total_employees }} <span class="fs-6 text-success">({{ attendance_rate }}%)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="p-3 bg-danger bg-opacity-10 rounded-circle text-danger me-3">
+                    <i class="fa-solid fa-file-invoice-dollar fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">AR Receivables Due</div>
+                    <div class="fs-5 fw-bold text-danger">${{ outstanding_receivables|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="p-3 bg-warning bg-opacity-10 rounded-circle text-warning me-3">
+                    <i class="fa-solid fa-clipboard-check fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Pending Approvals</div>
+                    <div class="fs-5 fw-bold text-dark">{{ pending_approvals }} Requests</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-white border shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="p-3 bg-info bg-opacity-10 rounded-circle text-info me-3">
+                    <i class="fa-solid fa-diagram-project fa-lg"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Active Project Deliveries</div>
+                    <div class="fs-5 fw-bold text-dark">{{ active_projects }} Projects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Financial Performance & Cash Flow</h5>
+                <span class="badge bg-light text-dark border">Quarterly Projection (USD)</span>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="financialChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Revenue by Division</h5>
+                <i class="bi bi-three-dots text-muted"></i>
+            </div>
+            <div style="height: 300px;" class="d-flex align-items-center justify-content-center">
+                <canvas id="revenueDoughnutChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Operational Feeds Row -->
+<div class="row g-4">
+    <!-- Recent Transactions & GL Entries -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h5 class="fw-bold mb-0">Recent General Ledger Postings</h5>
+                <a href="{% url 'accounting:journal_entries' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Entry #</th>
+                            <th>Date</th>
+                            <th>Narration</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recent_transactions %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'accounting:journal_entry_detail' entry.id %}" class="text-decoration-none">{{ entry.entry_number }}</a></td>
+                            <td class="small text-muted">{{ entry.date }}</td>
+                            <td class="small text-truncate" style="max-width: 160px;">{{ entry.narration }}</td>
+                            <td class="fw-semibold">${{ entry.total_debit|intcomma }}</td>
+                            <td>
+                                <span class="badge {% if entry.status == 'POSTED' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">
+                                    {{ entry.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No recent transactions recorded</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live System Activity & Audit Trail -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h5 class="fw-bold mb-0">Real-Time Audit Trail</h5>
+                <a href="{% url 'audit:list' %}" class="small text-decoration-none">Audit Center</a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for log in recent_activities %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center overflow-hidden">
+                        <div class="bg-light rounded p-2 me-3 text-primary">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold small text-truncate">{{ log.model_name }}: {{ log.object_repr|default:log.description }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">
+                                By {{ log.user.email|default:'System' }} &bull; {{ log.timestamp|timesince }} ago
+                            </div>
+                        </div>
+                    </div>
+                    <span class="badge badge-soft-primary small flex-shrink-0">{{ log.action }}</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No audit records yet</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Financial Bar / Line Chart
+    const ctxFin = document.getElementById('financialChart').getContext('2d');
+    new Chart(ctxFin, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+            datasets: [
+                {
+                    label: 'Gross Revenue ($)',
+                    data: [120000, 145000, 190000, 210000, 240000, 280000, 310000, 350000, 385000],
+                    backgroundColor: '#1e3a8a',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Operating Expenses ($)',
+                    data: [85000, 92000, 110000, 130000, 140000, 160000, 180000, 195000, 210000],
+                    backgroundColor: '#0ea5e9',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Revenue by Division Doughnut
+    const ctxDoughnut = document.getElementById('revenueDoughnutChart').getContext('2d');
+    new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+            labels: ['Enterprise Software', 'Professional Services', 'Hardware & Fleet', 'Maintenance SLA'],
+            datasets: [{
+                data: [45, 25, 18, 12],
+                backgroundColor: ['#1e3a8a', '#0ea5e9', '#10b981', '#f59e0b']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+</script>
+{% endblock %}

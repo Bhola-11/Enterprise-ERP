@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-3">{{ title }}</h4>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Product Name</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">SKU Code</label>
+                        {{ form.sku }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Category</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Brand / Manufacturer</label>
+                        {{ form.brand }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Unit of Measure (UOM)</label>
+                        {{ form.uom }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Cost Price ($)</label>
+                        {{ form.cost_price }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Selling Price ($)</label>
+                        {{ form.selling_price }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Reorder Threshold Level</label>
+                        {{ form.reorder_level }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Reorder Batch Quantity</label>
+                        {{ form.reorder_quantity }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Initial Stock Level</label>
+                        {{ form.current_stock }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Barcode / EAN</label>
+                    {{ form.barcode }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Product Description</label>
+                    {{ form.description }}
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.is_batched }}
+                            <label class="form-check-label small fw-semibold" for="{{ form.is_batched.id_for_label }}">Batch Tracking</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.is_serialized }}
+                            <label class="form-check-label small fw-semibold" for="{{ form.is_serialized.id_for_label }}">Serial Number Tracking</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label small fw-semibold" for="{{ form.is_active.id_for_label }}">Active SKU</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-light border">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

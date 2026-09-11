@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Payroll Engine — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Corporate Payroll Processing Engine</h3>
+        <p class="text-muted small mb-0">Monthly payruns, salary structures, earnings/deductions, and automatic GL journal disbursals.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'payroll:generate' %}" class="btn btn-primary btn-sm"><i class="bi bi-calculator me-1"></i> Generate New Payrun</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Payrun Cycles History</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Payrun Cycle</th>
+                            <th>Gross Payroll</th>
+                            <th>Deductions</th>
+                            <th>Net Disbursed</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pr in payruns %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'payroll:payrun_detail' pr.id %}">{{ pr.title }}</a></td>
+                            <td class="small">${{ pr.total_gross|intcomma }}</td>
+                            <td class="small text-danger">-${{ pr.total_deductions|intcomma }}</td>
+                            <td class="fw-bold text-success">${{ pr.total_net|intcomma }}</td>
+                            <td>
+                                <span class="badge {% if pr.status == 'PAID' %}badge-soft-success{% elif pr.status == 'APPROVED' %}badge-soft-primary{% else %}badge-soft-warning{% endif %}">
+                                    {{ pr.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No payruns processed yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Recent Generated Payslips</h5>
+            <div class="list-group list-group-flush">
+                {% for ps in recent_payslips %}
+                <a href="{% url 'payroll:payslip_detail' ps.id %}" class="list-group-item list-group-item-action px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold text-dark">{{ ps.employee.full_name }}</div>
+                        <div class="text-muted small">{{ ps.employee.department.name }} &bull; {{ ps.payrun.title }}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-success">${{ ps.net_salary|intcomma }}</div>
+                        <span class="badge {% if ps.is_paid %}badge-soft-success{% else %}badge-soft-warning{% endif %} small">
+                            {% if ps.is_paid %}Paid{% else %}Draft{% endif %}
+                        </span>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No payslips available</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

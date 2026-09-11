@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-3">{{ title }}</h4>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">License Plate #</label>
+                        {{ form.plate_number }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Make / Manufacturer</label>
+                        {{ form.make }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Vehicle Model</label>
+                        {{ form.model }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Manufacturing Year</label>
+                        {{ form.year }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">VIN / Chassis #</label>
+                        {{ form.vin }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Fuel / Propulsion Type</label>
+                        {{ form.fuel_type }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Current Odometer (km)</label>
+                        {{ form.current_odometer_km }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Operating Status</label>
+                        {{ form.status }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Assigned Driver</label>
+                        {{ form.assigned_driver }}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'fleet:list' %}" class="btn btn-light border">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

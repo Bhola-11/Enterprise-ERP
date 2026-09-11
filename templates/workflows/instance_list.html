@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Workflow Approvals — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Multi-Tier Workflow & Approvals Center</h3>
+        <p class="text-muted small mb-0">Centralized approval inbox across Purchase Orders, Expenses, Leaves, and Discounts.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'workflows:definitions' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-diagram-3 me-1"></i> Workflow Rules</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <div class="d-flex gap-2">
+        <a href="?status=PENDING" class="btn btn-sm {% if status_filter == 'PENDING' %}btn-primary{% else %}btn-light border{% endif %}">Pending Review</a>
+        <a href="?status=APPROVED" class="btn btn-sm {% if status_filter == 'APPROVED' %}btn-primary{% else %}btn-light border{% endif %}">Approved</a>
+        <a href="?status=REJECTED" class="btn btn-sm {% if status_filter == 'REJECTED' %}btn-primary{% else %}btn-light border{% endif %}">Rejected</a>
+        <a href="?status=ALL" class="btn btn-sm {% if status_filter == 'ALL' %}btn-primary{% else %}btn-light border{% endif %}">All Requests</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>WF #</th>
+                    <th>Workflow Process</th>
+                    <th>Requester</th>
+                    <th>Amount ($)</th>
+                    <th>Current Approval Stage</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wf in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'workflows:instance_detail' wf.id %}">WF-{{ wf.id }}</a></td>
+                    <td class="fw-semibold">{{ wf.workflow.name }}</td>
+                    <td class="small">{{ wf.requester.get_full_name|default:wf.requester.email }}</td>
+                    <td class="fw-bold text-dark">{% if wf.amount > 0 %}${{ wf.amount|intcomma }}{% else %}—{% endif %}</td>
+                    <td class="small text-muted">{{ wf.current_stage.name|default:'Completed / Resolved' }}</td>
+                    <td class="small text-muted">{{ wf.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <span class="badge {% if wf.status == 'APPROVED' %}badge-soft-success{% elif wf.status == 'REJECTED' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">
+                            {{ wf.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'workflows:instance_detail' wf.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No approval requests found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

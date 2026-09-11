@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Sales Operations — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Sales & Revenue Operations</h3>
+        <p class="text-muted small mb-0">Quotations, Sales Orders fulfillment, Invoicing, and Payment Receipts.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'sales:customer_create' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-plus me-1"></i> Add Customer</a>
+        <a href="{% url 'sales:order_list' %}" class="btn btn-primary btn-sm"><i class="bi bi-cart me-1"></i> Sales Orders</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Paid Sales Revenue</div>
+            <h4 class="fw-bold my-1 text-success">${{ total_sales|intcomma }}</h4>
+            <div class="small text-muted">Settled invoices</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card danger shadow-sm">
+            <div class="text-muted small">Outstanding Invoices</div>
+            <h4 class="fw-bold my-1 text-danger">${{ outstanding_invoices|intcomma }}</h4>
+            <div class="small text-muted"><a href="{% url 'sales:invoice_list' %}">Review Pending Collections</a></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Active Sales Orders</div>
+            <h4 class="fw-bold my-1 text-primary">{{ active_orders }}</h4>
+            <div class="small text-muted">In fulfillment / shipping</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Active Customers</div>
+            <h4 class="fw-bold my-1 text-info">{{ customers_count }}</h4>
+            <div class="small text-muted"><a href="{% url 'sales:customer_list' %}">Customer Directory</a></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Sales Orders</h5>
+                <a href="{% url 'sales:order_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'sales:order_detail' order.id %}">{{ order.order_number }}</a></td>
+                            <td class="small">{{ order.customer }}</td>
+                            <td class="fw-bold">${{ order.total_amount|intcomma }}</td>
+                            <td><span class="badge badge-soft-primary">{{ order.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No recent orders</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Invoices</h5>
+                <a href="{% url 'sales:invoice_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in recent_invoices %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'sales:invoice_detail' inv.id %}">{{ inv.invoice_number }}</a></td>
+                            <td class="small">{{ inv.customer }}</td>
+                            <td class="fw-bold">${{ inv.total_amount|intcomma }}</td>
+                            <td>
+                                <span class="badge {% if inv.status == 'PAID' %}badge-soft-success{% elif inv.status == 'PARTIAL' %}badge-soft-warning{% else %}badge-soft-danger{% endif %}">
+                                    {{ inv.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No recent invoices</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

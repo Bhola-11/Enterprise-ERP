@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Ticket: {{ ticket.ticket_id }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">[{{ ticket.ticket_id }}] {{ ticket.subject }}</h3>
+        <p class="text-muted small mb-0">Customer: <strong>{{ ticket.customer }}</strong> &bull; Category: {{ ticket.category.name }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'support:ticket_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to Queue</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Ticket Metadata</h5>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Current Status</span>
+                <form method="post" class="mt-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="update_status" value="true">
+                    <div class="input-group input-group-sm">
+                        <select name="status" class="form-select">
+                            {% for code, label in statuses %}
+                            <option value="{{ code }}" {% if ticket.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Priority</span>
+                <span class="badge {% if ticket.priority == 'URGENT' %}badge-soft-danger{% elif ticket.priority == 'HIGH' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">
+                    {{ ticket.get_priority_display }}
+                </span>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Assigned Agent</span>
+                <div>{{ ticket.assigned_to.get_full_name|default:'Unassigned' }}</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Created At</span>
+                <div class="small">{{ ticket.created_at|date:"M d, Y H:i" }}</div>
+            </div>
+            {% if ticket.resolved_at %}
+            <div>
+                <span class="text-muted small d-block">Resolved At</span>
+                <div class="small text-success">{{ ticket.resolved_at|date:"M d, Y H:i" }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-2">Issue Description</h5>
+            <div class="p-3 bg-light rounded text-dark small mb-4">
+                {{ ticket.description }}
+            </div>
+
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Discussion & Response Thread</h5>
+            <div class="list-group list-group-flush mb-4">
+                {% for com in comments %}
+                <div class="list-group-item px-0 py-3 {% if com.is_internal_note %}bg-warning bg-opacity-10 p-3 rounded mb-2 border{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <strong>{{ com.author.get_full_name|default:com.author.email }}</strong>
+                            {% if com.is_internal_note %}
+                            <span class="badge bg-warning text-dark ms-2"><i class="bi bi-lock me-1"></i>Internal Note</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-muted small">{{ com.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="small text-dark mt-2">{{ com.comment }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No replies logged yet.</div>
+                {% endfor %}
+            </div>
+
+            <!-- Reply Form -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Add Reply / Internal Note</label>
+                    {{ comment_form.comment }}
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check">
+                        {{ comment_form.is_internal_note }}
+                        <label class="form-check-label small" for="{{ comment_form.is_internal_note.id_for_label }}">Make this an Internal Staff Note</label>
+                    </div>
+                    <button type="submit" name="add_comment" class="btn btn-primary btn-sm">Post Response</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

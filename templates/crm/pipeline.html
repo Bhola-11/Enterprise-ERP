@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Visual Sales Pipeline — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Visual Sales Pipeline</h3>
+        <p class="text-muted small mb-0">Drag & drop visual deal flow stages with automated weighted revenue forecasting.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'crm:opportunity_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> New Opportunity</a>
+    </div>
+</div>
+
+<div class="row g-3 overflow-auto flex-nowrap pb-3" style="min-height: 650px;">
+    {% for col in pipeline_data %}
+    <div class="col-12 col-md-4 col-lg-3" style="min-width: 290px;">
+        <div class="kanban-col h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 text-dark">{{ col.label }}</h6>
+                <span class="badge bg-white text-dark border">{{ col.count }}</span>
+            </div>
+            <div class="text-muted small mb-3 pb-2 border-bottom fw-semibold">
+                ${{ col.total_value|intcomma }}
+            </div>
+
+            {% for opp in col.opportunities %}
+            <div class="kanban-card">
+                <div class="fw-bold text-dark mb-1">{{ opp.name }}</div>
+                <div class="text-muted small mb-2"><i class="bi bi-building me-1"></i>{{ opp.company.name|default:'Independent' }}</div>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <span class="fw-bold text-primary">${{ opp.amount|intcomma }}</span>
+                    <span class="badge bg-light text-muted small border">{{ opp.probability }}%</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4 small">No deals in this stage</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}{% if dept %}Edit Department: {{ dept.name }}{% else %}Register Department{% endif %} | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold m-0 text-dark"><i class="bi bi-diagram-3-fill text-primary me-2"></i>{% if dept %}Edit Department: {{ dept.name }}{% else %}Register New Department{% endif %}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Department Name</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Department Code</label>
+                            {{ form.code }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Branch (Optional)</label>
+                            {{ form.branch }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Description / Purpose</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label small fw-bold ms-1" for="{{ form.is_active.id_for_label }}">Active Department</label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end mt-4 d-flex justify-content-end gap-2">
+                            <a href="{% url 'organizations:settings' %}" class="btn btn-light border">Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save Department</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

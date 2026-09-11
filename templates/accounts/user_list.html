@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}User & Identity Management | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-people-fill text-primary me-2"></i>User & Identity Governance</h2>
+        <p class="text-muted">Role-based access control, employee user accounts, and security privileges.</p>
+    </div>
+    <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
+        <a href="{% url 'accounts:user_create' %}" class="btn btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Add New User</a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Search Users</label>
+                <input type="text" name="q" class="form-control" placeholder="Search by name, email, department..." value="{{ search_query|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Filter by Role</label>
+                <select name="role" class="form-select">
+                    <option value="">All Enterprise Roles</option>
+                    {% for r_code, r_name in roles %}
+                    <option value="{{ r_code }}" {% if selected_role == r_code %}selected{% endif %}>{{ r_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter me-1"></i> Filter</button>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-light border">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 border-0">
+        <h6 class="fw-bold m-0 text-dark">Enterprise Users ({{ page_obj.paginator.count }})</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Last Active</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in page_obj %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center me-2" style="width: 38px; height: 38px;">
+                                {{ u.first_name|default:u.email|first|upper }}
+                            </div>
+                            <div>
+                                <strong class="text-dark">{{ u.get_full_name|default:u.username }}</strong>
+                                <br><small class="text-muted">{{ u.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">{{ u.get_role_display }}</span></td>
+                    <td>{{ u.department|default:"General" }}</td>
+                    <td>{{ u.phone|default:"—" }}</td>
+                    <td>
+                        <span class="badge {% if u.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if u.is_active %}Active{% else %}Deactivated{% endif %}
+                        </span>
+                    </td>
+                    <td class="small text-muted">{{ u.last_login|date:"Y-m-d H:i"|default:"Never" }}</td>
+                    <td>
+                        <a href="{% url 'accounts:user_edit' u.id %}" class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">No users found matching query.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <small class="text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users</small>
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_role %}&role={{ selected_role }}{% endif %}">Next</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

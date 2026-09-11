@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Warehouses — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Warehouse Network & Storage Locations</h3>
+        <p class="text-muted small mb-0">Multi-warehouse facility tracking, zones, bins, and inter-warehouse logistics.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'warehouse:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Facility</a>
+        <a href="{% url 'warehouse:transfer_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left-right me-1"></i> Stock Transfers</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for wh in warehouses %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">{{ wh.name }}</h5>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mt-1">{{ wh.code }}</span>
+                </div>
+                {% if wh.is_primary %}
+                <span class="badge bg-success">Primary Hub</span>
+                {% endif %}
+            </div>
+            <div class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>{{ wh.address }}, {{ wh.city }}</div>
+            <div class="text-muted small mb-2"><i class="bi bi-person me-1"></i>Manager: {{ wh.manager|default:'Operations Team' }}</div>
+            <div class="text-muted small mb-3"><i class="bi bi-bounding-box me-1"></i>Capacity: {{ wh.total_capacity_sqft|intcomma }} sq. ft.</div>
+            <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center">
+                <span class="small text-muted">{{ wh.zones.count }} Storage Zones</span>
+                <a href="{% url 'warehouse:edit' wh.id %}" class="btn btn-sm btn-outline-secondary">Configure</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">No warehouses registered yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

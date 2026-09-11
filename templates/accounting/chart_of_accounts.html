@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Chart of Accounts — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Standard Chart of Accounts (COA)</h3>
+        <p class="text-muted small mb-0">Classified general ledger accounts structured by Assets, Liabilities, Equity, Revenue, and Expenses.</p>
+    </div>
+    <a href="{% url 'accounting:account_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add GL Account</a>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <div class="d-flex gap-2">
+        <a href="{% url 'accounting:chart_of_accounts' %}" class="btn btn-sm {% if not selected_type %}btn-primary{% else %}btn-light border{% endif %}">All Accounts</a>
+        {% for code, label in types %}
+        <a href="?type={{ code }}" class="btn btn-sm {% if selected_type == code %}btn-primary{% else %}btn-light border{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>GL Code</th>
+                    <th>Account Name</th>
+                    <th>Classification</th>
+                    <th>Current Balance</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in accounts %}
+                <tr>
+                    <td class="fw-bold font-monospace text-primary">{{ acc.code }}</td>
+                    <td class="fw-semibold">{{ acc.name }}</td>
+                    <td>
+                        <span class="badge {% if acc.account_type == 'ASSET' %}bg-primary{% elif acc.account_type == 'REVENUE' %}bg-success{% elif acc.account_type == 'EXPENSE' %}bg-warning text-dark{% else %}bg-secondary{% endif %} bg-opacity-75">
+                            {{ acc.get_account_type_display }}
+                        </span>
+                    </td>
+                    <td class="fw-bold fs-6">${{ acc.balance|intcomma }}</td>
+                    <td>
+                        {% if acc.is_active %}
+                        <span class="badge badge-soft-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-soft-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No accounts configured</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

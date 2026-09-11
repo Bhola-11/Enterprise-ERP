@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Customers Directory — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Customer Portfolio</h3>
+        <p class="text-muted small mb-0">Active enterprise customers, credit limits, balances, and billing profiles.</p>
+    </div>
+    <a href="{% url 'sales:customer_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i> Add Customer</a>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-6">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Search customers by name, company, email..." value="{{ request.GET.q|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Search</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City / Country</th>
+                    <th>Credit Limit</th>
+                    <th>Balance Due</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cust in page_obj %}
+                <tr>
+                    <td class="fw-semibold">{{ cust.first_name }} {{ cust.last_name }}</td>
+                    <td>{{ cust.company_name|default:'—' }}</td>
+                    <td><a href="mailto:{{ cust.email }}" class="text-decoration-none">{{ cust.email }}</a></td>
+                    <td class="small">{{ cust.phone }}</td>
+                    <td class="small">{{ cust.city }}, {{ cust.country }}</td>
+                    <td class="fw-semibold">${{ cust.credit_limit|intcomma }}</td>
+                    <td class="fw-bold text-danger">${{ cust.current_balance|intcomma }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No customers registered</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

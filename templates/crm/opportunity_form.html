@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-3">{{ title }}</h4>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Deal / Opportunity Name</label>
+                    {{ form.name }}
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Company</label>
+                        {{ form.company }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Key Contact</label>
+                        {{ form.contact }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Pipeline Stage</label>
+                        {{ form.stage }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Deal Amount ($)</label>
+                        {{ form.amount }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Win Probability (%)</label>
+                        {{ form.probability }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Expected Close Date</label>
+                        {{ form.expected_close_date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Assigned Deal Owner</label>
+                        {{ form.assigned_to }}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'crm:pipeline' %}" class="btn btn-light border">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Opportunity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

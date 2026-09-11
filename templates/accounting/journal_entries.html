@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Journal Vouchers — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">General Ledger Journal Vouchers</h3>
+        <p class="text-muted small mb-0">Double-entry accounting journal entries with balanced debit and credit validation.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Entry #</th>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Narration</th>
+                    <th>Total Debit</th>
+                    <th>Total Credit</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in page_obj %}
+                <tr>
+                    <td class="fw-bold"><a href="{% url 'accounting:journal_entry_detail' entry.id %}">{{ entry.entry_number }}</a></td>
+                    <td class="small">{{ entry.date }}</td>
+                    <td class="small text-muted">{{ entry.reference|default:'—' }}</td>
+                    <td class="small text-truncate" style="max-width: 250px;">{{ entry.narration }}</td>
+                    <td class="fw-bold">${{ entry.total_debit|intcomma }}</td>
+                    <td class="fw-bold">${{ entry.total_credit|intcomma }}</td>
+                    <td>
+                        <span class="badge {% if entry.status == 'POSTED' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">
+                            {{ entry.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'accounting:journal_entry_detail' entry.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No journal entries found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

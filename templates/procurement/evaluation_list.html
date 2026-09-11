@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Procurement Rules & Vendor Evaluations — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Procurement Governance & Vendor Scorecards</h3>
+        <p class="text-muted small mb-0">Multi-criteria vendor evaluations, spending threshold policies, and procurement categories.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Vendor Evaluation Scorecards</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Quality</th>
+                            <th>Delivery</th>
+                            <th>Pricing</th>
+                            <th>Compliance</th>
+                            <th>Composite Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eval in evaluations %}
+                        <tr>
+                            <td class="fw-semibold">{{ eval.vendor_name }}</td>
+                            <td>{{ eval.quality_score }}%</td>
+                            <td>{{ eval.delivery_score }}%</td>
+                            <td>{{ eval.pricing_score }}%</td>
+                            <td>{{ eval.compliance_score }}%</td>
+                            <td>
+                                <span class="badge {% if eval.composite_score >= 80 %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ eval.composite_score }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-3">No evaluations recorded</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Spending Authority Limits</h5>
+            <div class="list-group list-group-flush">
+                {% for limit in limits %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ limit.role }}</div>
+                        <div class="text-muted small">Single Approval Limit</div>
+                    </div>
+                    <span class="badge bg-primary fs-6">${{ limit.max_approval_amount|intcomma }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted small">No spending rules defined</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Procurement Categories</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for cat in categories %}
+                <span class="badge bg-light text-dark border p-2">{{ cat.name }} ({{ cat.code }})</span>
+                {% empty %}
+                <span class="text-muted small">No categories</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

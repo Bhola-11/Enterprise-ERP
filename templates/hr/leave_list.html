@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Employee Leave Management — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Employee Leave Requests & Time Off</h3>
+        <p class="text-muted small mb-0">Review time-off requests, vacation days, and workflow approval decisions.</p>
+    </div>
+    <a href="{% url 'hr:leave_apply' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Submit Leave Request</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Total Days</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lr in page_obj %}
+                <tr>
+                    <td class="fw-semibold">{{ lr.employee.full_name }}</td>
+                    <td>{{ lr.leave_type.name }}</td>
+                    <td class="small">{{ lr.start_date }}</td>
+                    <td class="small">{{ lr.end_date }}</td>
+                    <td class="fw-bold">{{ lr.total_days }} days</td>
+                    <td class="small text-muted">{{ lr.reason }}</td>
+                    <td>
+                        <span class="badge {% if lr.status == 'APPROVED' %}badge-soft-success{% elif lr.status == 'REJECTED' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">
+                            {{ lr.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No leave requests found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

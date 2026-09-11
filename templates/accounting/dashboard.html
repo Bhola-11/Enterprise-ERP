@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Finance & Accounting — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Double-Entry Financial Management</h3>
+        <p class="text-muted small mb-0">General Ledger, Chart of Accounts, Journal Vouchers, Financial Reporting & Bank Accounts.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'accounting:chart_of_accounts' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-diagram-3 me-1"></i> Chart of Accounts</a>
+        <a href="{% url 'accounting:trial_balance' %}" class="btn btn-light btn-sm border"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Trial Balance</a>
+        <a href="{% url 'accounting:profit_and_loss' %}" class="btn btn-primary btn-sm"><i class="bi bi-graph-up me-1"></i> P&L Statement</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Enterprise Assets</div>
+            <h4 class="fw-bold my-1 text-primary">${{ summary.assets|intcomma }}</h4>
+            <div class="small text-muted">Cash, Bank, AR, Inventory</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Total Liabilities</div>
+            <h4 class="fw-bold my-1 text-dark">${{ summary.liabilities|intcomma }}</h4>
+            <div class="small text-muted">AP Bills & Accruals</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Net Fiscal Profit</div>
+            <h4 class="fw-bold my-1 text-success">${{ summary.net_profit|intcomma }}</h4>
+            <div class="small text-muted">Revenue minus Expenses</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Total Shareholder Equity</div>
+            <h4 class="fw-bold my-1 text-info">${{ summary.equity|intcomma }}</h4>
+            <div class="small text-muted">Capital & Retained Earnings</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Journal Vouchers</h5>
+                <a href="{% url 'accounting:journal_entries' %}" class="small text-decoration-none">View All Entries</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Entry #</th>
+                            <th>Date</th>
+                            <th>Narration</th>
+                            <th>Debit / Credit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recent_entries %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'accounting:journal_entry_detail' entry.id %}">{{ entry.entry_number }}</a></td>
+                            <td class="small">{{ entry.date }}</td>
+                            <td class="small text-truncate" style="max-width: 200px;">{{ entry.narration }}</td>
+                            <td class="fw-bold text-primary">${{ entry.total_debit|intcomma }}</td>
+                            <td>
+                                <span class="badge {% if entry.status == 'POSTED' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">
+                                    {{ entry.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No journal entries recorded</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Corporate Bank Accounts</h5>
+            <div class="list-group list-group-flush">
+                {% for b in bank_accounts %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ b.bank_name }}</div>
+                        <div class="text-muted small">{{ b.account_name }} (****{{ b.account_number|slice:"-4:" }})</div>
+                    </div>
+                    <span class="fw-bold text-success fs-5">${{ b.balance|intcomma }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted small py-3 text-center">No bank accounts linked</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

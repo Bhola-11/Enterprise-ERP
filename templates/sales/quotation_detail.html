@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Quotation: {{ quote.quote_number }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Quotation #{{ quote.quote_number }}</h3>
+        <p class="text-muted small mb-0">Prepared for <strong>{{ quote.customer }}</strong> &bull; Date: {{ quote.date }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if quote.status != 'ACCEPTED' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" name="convert_to_order" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i> Accept & Convert to Sales Order</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'sales:quotation_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <h6 class="fw-bold text-muted text-uppercase small">Client Details</h6>
+            <div class="fw-bold">{{ quote.customer.first_name }} {{ quote.customer.last_name }}</div>
+            <div class="text-muted small">{{ quote.customer.company_name }}</div>
+            <div class="text-muted small">{{ quote.customer.billing_address }}</div>
+            <div class="text-muted small">{{ quote.customer.email }} | {{ quote.customer.phone }}</div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <h6 class="fw-bold text-muted text-uppercase small">Quotation Metadata</h6>
+            <div><strong>Status:</strong> <span class="badge badge-soft-primary">{{ quote.get_status_display }}</span></div>
+            <div class="text-muted small"><strong>Expiry Date:</strong> {{ quote.expiry_date }}</div>
+            <div class="text-muted small"><strong>Created By:</strong> {{ quote.created_by.get_full_name|default:quote.created_by.email }}</div>
+        </div>
+    </div>
+
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Item / Product</th>
+                    <th>SKU</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Discount</th>
+                    <th class="text-end">Total ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for itm in items %}
+                <tr>
+                    <td class="fw-semibold">{{ itm.product.name }}</td>
+                    <td class="small text-muted">{{ itm.product.sku }}</td>
+                    <td>{{ itm.quantity }}</td>
+                    <td>${{ itm.unit_price|intcomma }}</td>
+                    <td>{{ itm.discount_percent }}%</td>
+                    <td class="text-end fw-bold">${{ itm.total|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Subtotal:</td>
+                    <td class="text-end fw-semibold">${{ quote.subtotal|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Estimated Tax (10%):</td>
+                    <td class="text-end fw-semibold">${{ quote.tax_amount|intcomma }}</td>
+                </tr>
+                <tr class="table-primary">
+                    <td colspan="5" class="text-end fw-bold fs-5">Total Amount:</td>
+                    <td class="text-end fw-bold fs-5">${{ quote.total_amount|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% if quote.terms %}
+    <div class="bg-light p-3 rounded">
+        <h6 class="fw-bold small mb-1">Commercial Terms & Conditions:</h6>
+        <p class="small text-muted mb-0">{{ quote.terms }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

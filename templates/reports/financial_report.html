@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}General Ledger Summary Report | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="fw-bold text-dark"><i class="bi bi-bank text-primary me-2"></i>General Ledger Financial Summary</h2>
+        <p class="text-muted">High-level Revenue, Expense, and Operating Margin breakdown.</p>
+    </div>
+    <div class="col-md-6 text-end d-flex align-items-center justify-content-end gap-2">
+        <a href="{% url 'reports:report_center' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back to Center</a>
+        <a href="{% url 'accounting:trial_balance' %}" class="btn btn-outline-info"><i class="bi bi-journal-text me-1"></i> Full Trial Balance</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body p-4">
+                <span class="text-white-50 text-uppercase fw-bold small">Total Operating Revenue</span>
+                <h2 class="fw-bold my-2">${{ total_rev|floatformat:2 }}</h2>
+                <small class="text-white-50"><i class="bi bi-graph-up me-1"></i> Credit revenue balances</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-danger text-white">
+            <div class="card-body p-4">
+                <span class="text-white-50 text-uppercase fw-bold small">Total Operating Expenses</span>
+                <h2 class="fw-bold my-2">${{ total_exp|floatformat:2 }}</h2>
+                <small class="text-white-50"><i class="bi bi-graph-down me-1"></i> Debit expense balances</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 {% if net_profit >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white">
+            <div class="card-body p-4">
+                <span class="text-white-50 text-uppercase fw-bold small">Net Operating Margin</span>
+                <h2 class="fw-bold my-2">${{ net_profit|floatformat:2 }}</h2>
+                <small class="text-white-50"><i class="bi bi-calculator me-1"></i> Revenue minus Expenses</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-success"><i class="bi bi-arrow-down-circle me-1"></i> Revenue Accounts</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Code</th>
+                            <th>Account Name</th>
+                            <th class="text-end">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in rev_accounts %}
+                        <tr>
+                            <td class="fw-bold">{{ a.code }}</td>
+                            <td>{{ a.name }}</td>
+                            <td class="text-end fw-bold text-success">${{ a.balance|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center py-3 text-muted">No revenue accounts configured.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-danger"><i class="bi bi-arrow-up-circle me-1"></i> Expense Accounts</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Code</th>
+                            <th>Account Name</th>
+                            <th class="text-end">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in exp_accounts %}
+                        <tr>
+                            <td class="fw-bold">{{ a.code }}</td>
+                            <td>{{ a.name }}</td>
+                            <td class="text-end fw-bold text-danger">${{ a.balance|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center py-3 text-muted">No expense accounts configured.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Fleet Management — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Corporate Fleet & Logistics Management</h3>
+        <p class="text-muted small mb-0">Vehicle registry, driver assignments, fuel consumption logs, and trip schedules.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'fleet:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Vehicle</a>
+        <a href="{% url 'fleet:fuel_create' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-fuel-pump me-1"></i> Log Fuel Expense</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Fleet Vehicles</div>
+            <h4 class="fw-bold my-1 text-primary">{{ total_vehicles }} Vehicles</h4>
+            <div class="small text-muted">{{ active_vehicles }} Active on Route</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Total Fuel Expenditure</div>
+            <h4 class="fw-bold my-1 text-dark">${{ fuel_spend|intcomma }}</h4>
+            <div class="small text-muted">Fleet operating costs</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Fleet Operational Health</div>
+            <h4 class="fw-bold my-1 text-success">100%</h4>
+            <div class="small text-muted">Zero maintenance blockers</div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>License Plate</th>
+                    <th>Vehicle Model</th>
+                    <th>Year</th>
+                    <th>Fuel Type</th>
+                    <th>Odometer (km)</th>
+                    <th>Assigned Driver</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'fleet:detail' v.id %}">{{ v.plate_number }}</a></td>
+                    <td class="fw-semibold">{{ v.make }} {{ v.model }}</td>
+                    <td class="small">{{ v.year }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ v.get_fuel_type_display }}</span></td>
+                    <td class="fw-bold">{{ v.current_odometer_km|intcomma }} km</td>
+                    <td class="small">{{ v.assigned_driver.employee.full_name|default:'Unassigned' }}</td>
+                    <td><span class="badge badge-soft-primary">{{ v.get_status_display }}</span></td>
+                    <td>
+                        <a href="{% url 'fleet:detail' v.id %}" class="btn btn-sm btn-outline-primary">Telemetry</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No fleet vehicles registered</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Projects Directory — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Corporate Projects Directory</h3>
+        <p class="text-muted small mb-0">Project delivery schedules, client accounts, budgets, and milestone completion.</p>
+    </div>
+    <a href="{% url 'projects:project_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> New Project</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Project Code</th>
+                    <th>Project Name</th>
+                    <th>Client</th>
+                    <th>Lead Manager</th>
+                    <th>Budget</th>
+                    <th>Progress</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'projects:project_detail' p.id %}">{{ p.code }}</a></td>
+                    <td class="fw-semibold">{{ p.name }}</td>
+                    <td class="small">{{ p.client.name|default:'Internal' }}</td>
+                    <td class="small">{{ p.project_manager.get_full_name|default:p.project_manager.email }}</td>
+                    <td class="fw-bold text-success">${{ p.budget|intcomma }}</td>
+                    <td>
+                        <div class="progress" style="height: 6px; width: 80px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ p.progress_percentage }}%;"></div>
+                        </div>
+                        <span class="small text-muted" style="font-size: 0.7rem;">{{ p.progress_percentage }}%</span>
+                    </td>
+                    <td><span class="badge badge-soft-warning small">{{ p.get_priority_display }}</span></td>
+                    <td><span class="badge badge-soft-primary small">{{ p.get_status_display }}</span></td>
+                    <td>
+                        <a href="{% url 'projects:project_detail' p.id %}" class="btn btn-sm btn-outline-primary">Board</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4">No projects registered</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

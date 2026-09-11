@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Stock Transfers — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Inter-Warehouse Stock Transfers</h3>
+        <p class="text-muted small mb-0">Track and dispatch inventory movements between regional warehouses and hubs.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Transfer #</th>
+                    <th>Source Facility</th>
+                    <th>Destination Facility</th>
+                    <th>Transfer Date</th>
+                    <th>Status</th>
+                    <th>Created By</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in page_obj %}
+                <tr>
+                    <td class="fw-bold">{{ t.transfer_number }}</td>
+                    <td>{{ t.source_warehouse.name }}</td>
+                    <td>{{ t.destination_warehouse.name }}</td>
+                    <td class="small">{{ t.transfer_date }}</td>
+                    <td>
+                        <span class="badge {% if t.status == 'COMPLETED' %}badge-soft-success{% elif t.status == 'IN_TRANSIT' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">
+                            {{ t.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="small text-muted">{{ t.created_by.get_full_name|default:t.created_by.email }}</td>
+                    <td>
+                        {% if t.status != 'COMPLETED' %}
+                        <a href="{% url 'warehouse:transfer_complete' t.id %}" class="btn btn-sm btn-success">Receive & Complete</a>
+                        {% else %}
+                        <span class="badge bg-success bg-opacity-10 text-success">Settled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No transfer orders found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

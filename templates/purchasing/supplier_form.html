@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-3">{{ title }}</h4>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Supplier / Vendor Legal Name</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Contact Person</label>
+                        {{ form.contact_person }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Phone Number</label>
+                        {{ form.phone }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Tax ID / Registration Number</label>
+                        {{ form.tax_id }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Payment Terms</label>
+                        {{ form.payment_terms }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Business Address</label>
+                    {{ form.address }}
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">City</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Country</label>
+                        {{ form.country }}
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Vendor Quality Rating (0-5)</label>
+                        {{ form.rating }}
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center mt-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label small fw-semibold" for="{{ form.is_active.id_for_label }}">Active Supplier</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'purchasing:supplier_list' %}" class="btn btn-light border">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Supplier Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

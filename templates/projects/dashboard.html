@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Projects Portfolio — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Project Portfolio Management</h3>
+        <p class="text-muted small mb-0">Project delivery schedules, interactive Kanban boards, milestone tracking, and timesheets.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'projects:project_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> New Project</a>
+        <a href="{% url 'projects:timesheet_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-clock-history me-1"></i> Timesheets</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Project Portfolios</div>
+            <h4 class="fw-bold my-1 text-primary">{{ total_projects }}</h4>
+            <div class="small text-muted">{{ active_projects }} Active In-Flight</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Total Budget Capital</div>
+            <h4 class="fw-bold my-1 text-success">${{ total_budget|intcomma }}</h4>
+            <div class="small text-muted">Allocated project budgets</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Total Project Tasks</div>
+            <h4 class="fw-bold my-1 text-dark">{{ total_tasks }}</h4>
+            <div class="small text-muted">{{ completed_tasks }} Completed Tasks</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Task Completion Velocity</div>
+            <h4 class="fw-bold my-1 text-info">{% if total_tasks > 0 %}{{ completed_tasks }}{% else %}0{% endif %} Done</h4>
+            <div class="small text-muted">Sprint deliverables</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Active Strategic Projects</h5>
+                <a href="{% url 'projects:project_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Project Name</th>
+                            <th>Manager</th>
+                            <th>Progress</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prj in recent_projects %}
+                        <tr>
+                            <td class="fw-bold font-monospace"><a href="{% url 'projects:project_detail' prj.id %}">{{ prj.code }}</a></td>
+                            <td class="fw-semibold">{{ prj.name }}</td>
+                            <td class="small">{{ prj.project_manager.get_full_name|default:prj.project_manager.email }}</td>
+                            <td>
+                                <div class="progress" style="height: 6px; width: 100px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ prj.progress_percentage }}%;"></div>
+                                </div>
+                                <span class="small text-muted" style="font-size: 0.7rem;">{{ prj.progress_percentage }}%</span>
+                            </td>
+                            <td><span class="badge badge-soft-primary">{{ prj.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No active projects found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">My Assigned Action Items</h5>
+            <div class="list-group list-group-flush">
+                {% for tsk in my_tasks %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold text-dark">{{ tsk.title }}</div>
+                        <div class="text-muted small">{{ tsk.project.code }} &bull; Due: {{ tsk.due_date|default:'TBD' }}</div>
+                    </div>
+                    <span class="badge badge-soft-warning">{{ tsk.get_status_display }}</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">All assigned tasks completed!</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

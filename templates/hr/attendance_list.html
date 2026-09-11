@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Daily Attendance — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Workforce Attendance Registry</h3>
+        <p class="text-muted small mb-0">Daily biometric logs, shift hours, presence tracking, and remote work sessions.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date|default:'' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter Date</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Work Hours</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for att in page_obj %}
+                <tr>
+                    <td class="fw-semibold small">{{ att.date }}</td>
+                    <td class="fw-bold text-dark">{{ att.employee.full_name }}</td>
+                    <td class="small">{{ att.employee.department.name }}</td>
+                    <td class="small">{{ att.check_in|default:'—' }}</td>
+                    <td class="small">{{ att.check_out|default:'—' }}</td>
+                    <td class="small fw-semibold">{{ att.work_hours }} hrs</td>
+                    <td>
+                        <span class="badge {% if att.status == 'PRESENT' %}badge-soft-success{% elif att.status == 'WFH' %}badge-soft-info{% else %}badge-soft-danger{% endif %}">
+                            {{ att.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No attendance records logged</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

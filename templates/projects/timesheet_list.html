@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Timesheets & Billable Hours — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Employee Timesheets & Billable Hours</h3>
+        <p class="text-muted small mb-0">Track project work logs, billable consultant hours, and labor expense allocations.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Project</th>
+                    <th>Task Item</th>
+                    <th>Hours Logged</th>
+                    <th>Billable</th>
+                    <th>Work Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ts in page_obj %}
+                <tr>
+                    <td class="small fw-semibold">{{ ts.date }}</td>
+                    <td class="fw-bold text-dark">{{ ts.employee.full_name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ ts.task.project.code }}</span></td>
+                    <td class="small">{{ ts.task.title }}</td>
+                    <td class="fw-bold text-primary">{{ ts.hours }} hrs</td>
+                    <td>
+                        {% if ts.is_billable %}
+                        <span class="badge bg-success bg-opacity-10 text-success">Billable</span>
+                        {% else %}
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Internal</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ ts.description }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No timesheets logged</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

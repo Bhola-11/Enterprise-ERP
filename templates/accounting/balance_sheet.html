@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Balance Sheet — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Consolidated Balance Sheet</h3>
+        <p class="text-muted small mb-0">Financial position: Assets = Liabilities + Shareholder Equity.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4 h-100">
+            <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">Assets</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <tbody>
+                        {% for a in assets %}
+                        <tr>
+                            <td class="fw-semibold">{{ a.name }} ({{ a.code }})</td>
+                            <td class="text-end fw-bold">${{ a.balance|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-primary">
+                            <td class="fw-bold fs-5">Total Assets:</td>
+                            <td class="text-end fw-bold fs-5">${{ total_assets|intcomma }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm p-4 h-100">
+            <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Liabilities & Equity</h5>
+            <div class="table-responsive mb-4">
+                <h6 class="text-muted small fw-bold text-uppercase">Liabilities</h6>
+                <table class="table table-hover mb-3">
+                    <tbody>
+                        {% for l in liabilities %}
+                        <tr>
+                            <td class="fw-semibold">{{ l.name }} ({{ l.code }})</td>
+                            <td class="text-end fw-bold">${{ l.balance|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td class="fw-bold">Total Liabilities:</td>
+                            <td class="text-end fw-bold">${{ total_liabilities|intcomma }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <h6 class="text-muted small fw-bold text-uppercase">Equity</h6>
+                <table class="table table-hover mb-0">
+                    <tbody>
+                        {% for e in equity %}
+                        <tr>
+                            <td class="fw-semibold">{{ e.name }} ({{ e.code }})</td>
+                            <td class="text-end fw-bold">${{ e.balance|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td class="fw-bold">Total Equity:</td>
+                            <td class="text-end fw-bold">${{ total_equity|intcomma }}</td>
+                        </tr>
+                        <tr class="table-dark">
+                            <td class="fw-bold fs-5">Total Liabilities & Equity:</td>
+                            <td class="text-end fw-bold fs-5">${{ total_liabilities|add:total_equity|intcomma }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

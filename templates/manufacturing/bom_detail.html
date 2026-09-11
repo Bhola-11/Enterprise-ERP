@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}BOM: {{ bom.bom_number }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">BOM #{{ bom.bom_number }}</h3>
+        <p class="text-muted small mb-0">Finished Product: <strong>{{ bom.finished_product.name }}</strong> &bull; Batch Yield: {{ bom.quantity }} {{ bom.finished_product.uom.symbol }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'manufacturing:bom_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to BOMs</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <h5 class="fw-bold mb-3 border-bottom pb-2">Bill of Materials Components</h5>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Raw Material SKU</th>
+                    <th>Material Description</th>
+                    <th>Required Qty</th>
+                    <th>Unit Cost</th>
+                    <th>Scrap Allowance</th>
+                    <th class="text-end">Component Cost ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for itm in items %}
+                <tr>
+                    <td class="fw-bold font-monospace text-primary">{{ itm.raw_material.sku }}</td>
+                    <td class="fw-semibold">{{ itm.raw_material.name }}</td>
+                    <td>{{ itm.quantity }} {{ itm.raw_material.uom.symbol }}</td>
+                    <td class="small text-muted">${{ itm.raw_material.cost_price|intcomma }}</td>
+                    <td class="small">{{ itm.scrap_percentage }}%</td>
+                    <td class="text-end fw-bold">${{ itm.total_cost|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-primary">
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Total Estimated Direct Material Cost:</td>
+                    <td class="text-end fw-bold fs-5">${{ bom.total_raw_material_cost|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Purchase Orders — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Purchase Orders</h3>
+        <p class="text-muted small mb-0">Procurement purchase orders, vendor deliveries, and 3-way matching.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>PO #</th>
+                    <th>Supplier</th>
+                    <th>Order Date</th>
+                    <th>Expected Delivery</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in page_obj %}
+                <tr>
+                    <td class="fw-semibold"><a href="{% url 'purchasing:po_detail' po.id %}">{{ po.po_number }}</a></td>
+                    <td>{{ po.supplier }}</td>
+                    <td class="small">{{ po.order_date }}</td>
+                    <td class="small text-muted">{{ po.expected_delivery|default:'—' }}</td>
+                    <td class="fw-bold">${{ po.total_amount|intcomma }}</td>
+                    <td>
+                        <span class="badge {% if po.status == 'RECEIVED' %}badge-soft-success{% elif po.status == 'PENDING_APPROVAL' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">
+                            {{ po.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'purchasing:po_detail' po.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No purchase orders found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

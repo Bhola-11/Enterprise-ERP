@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}CRM Dashboard — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">CRM & Revenue Pipeline</h3>
+        <p class="text-muted small mb-0">Lead generation, sales pipeline progression, and customer acquisition metrics.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'crm:lead_create' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Lead</a>
+        <a href="{% url 'crm:opportunity_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Create Deal</a>
+        <a href="{% url 'crm:pipeline' %}" class="btn btn-light btn-sm border"><i class="bi bi-kanban me-1"></i> Visual Pipeline</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card shadow-sm">
+            <div class="text-muted small">Total Pipeline Value</div>
+            <h4 class="fw-bold my-1 text-primary">${{ pipeline_value|intcomma }}</h4>
+            <div class="small text-muted">Active deal negotiations</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card success shadow-sm">
+            <div class="text-muted small">Won Revenue</div>
+            <h4 class="fw-bold my-1 text-success">${{ won_revenue|intcomma }}</h4>
+            <div class="small text-success">Closed Won this period</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card warning shadow-sm">
+            <div class="text-muted small">Total Leads / Prospects</div>
+            <h4 class="fw-bold my-1 text-dark">{{ total_leads }} <span class="fs-6 text-primary">({{ new_leads }} New)</span></h4>
+            <div class="small text-muted"><a href="{% url 'crm:lead_list' %}">Manage Inbound Leads</a></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card info shadow-sm">
+            <div class="text-muted small">Average Deal Size</div>
+            <h4 class="fw-bold my-1 text-info">${{ avg_deal_size|intcomma }}</h4>
+            <div class="small text-muted">Across enterprise accounts</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3">Pipeline Stage Distribution</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sales Stage</th>
+                            <th>Deals Count</th>
+                            <th>Stage Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stg in stage_breakdown %}
+                        <tr>
+                            <td class="fw-semibold">{{ stg.name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ stg.count }} Deals</span></td>
+                            <td class="fw-bold text-primary">${{ stg.value|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Leads</h5>
+                <a href="{% url 'crm:lead_list' %}" class="small text-decoration-none">View All</a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for lead in recent_leads %}
+                <a href="{% url 'crm:lead_detail' lead.id %}" class="list-group-item list-group-item-action px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold text-dark">{{ lead.first_name }} {{ lead.last_name }}</div>
+                        <div class="text-muted small">{{ lead.company_name|default:'Individual' }} &bull; {{ lead.get_source_display }}</div>
+                    </div>
+                    <span class="badge badge-soft-primary">{{ lead.get_status_display }}</span>
+                </a>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No recent leads recorded</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

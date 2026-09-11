@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Asset: {{ asset.name }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">[{{ asset.asset_tag }}] {{ asset.name }}</h3>
+        <p class="text-muted small mb-0">Category: {{ asset.category.name }} &bull; Location: {{ asset.location }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'assets:list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to Assets</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Asset Details</h5>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Status</span>
+                <span class="badge badge-soft-primary">{{ asset.get_status_display }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Assigned To</span>
+                <div class="fw-bold">{{ asset.assigned_to.full_name|default:'In Storage / Unassigned' }}</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Purchase Cost</span>
+                <div class="fw-bold">${{ asset.purchase_cost|intcomma }} ({{ asset.purchase_date }})</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Current Book Value</span>
+                <div class="fs-4 fw-bold text-success">${{ asset.current_value|intcomma }}</div>
+            </div>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Depreciation Method</span>
+                <div class="small">{{ asset.category.get_depreciation_method_display }} ({{ asset.category.useful_life_years }} yrs)</div>
+                <div class="small text-muted">Annual Dep: ${{ asset.annual_depreciation|intcomma }} / yr</div>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Serial Number</span>
+                <div class="small font-monospace">{{ asset.serial_number|default:'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Maintenance & Service Records</h5>
+            <div class="list-group list-group-flush">
+                {% for log in logs %}
+                <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ log.service_type }}</div>
+                        <div class="text-muted small">{{ log.date }} &bull; Provider: {{ log.service_provider }}</div>
+                        <div class="small text-muted">{{ log.notes }}</div>
+                    </div>
+                    <span class="fw-bold text-dark">${{ log.cost|intcomma }}</span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4 small">No maintenance logs recorded</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

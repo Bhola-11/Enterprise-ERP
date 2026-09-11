@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Employee: {{ emp.full_name }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">{{ emp.full_name }}</h3>
+        <p class="text-muted small mb-0">{{ emp.designation.title }} &bull; {{ emp.department.name }} &bull; ID: <strong>{{ emp.employee_id }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:employee_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to Directory</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm p-4 mb-4">
+            <div class="text-center mb-4">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-2" style="width: 80px; height: 80px;">
+                    {{ emp.first_name|slice:":1" }}{{ emp.last_name|slice:":1" }}
+                </div>
+                <h5 class="fw-bold mb-0">{{ emp.full_name }}</h5>
+                <div class="text-muted small">{{ emp.designation.title }}</div>
+                <span class="badge {% if emp.status == 'ACTIVE' %}badge-soft-success{% else %}badge-soft-warning{% endif %} mt-2">{{ emp.get_status_display }}</span>
+            </div>
+            <div class="border-top pt-3">
+                <div class="mb-2 small"><strong>Email:</strong> <a href="mailto:{{ emp.email }}">{{ emp.email }}</a></div>
+                <div class="mb-2 small"><strong>Phone:</strong> {{ emp.phone }}</div>
+                <div class="mb-2 small"><strong>Department:</strong> {{ emp.department.name }}</div>
+                <div class="mb-2 small"><strong>Branch:</strong> {{ emp.branch.name }}</div>
+                <div class="mb-2 small"><strong>Joined:</strong> {{ emp.joining_date }}</div>
+                <div class="mb-2 small"><strong>Reports To:</strong> {{ emp.manager.full_name|default:'Executive Management' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Recent Attendance Records</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Hours</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendances %}
+                        <tr>
+                            <td class="small fw-semibold">{{ att.date }}</td>
+                            <td class="small">{{ att.check_in|default:'—' }}</td>
+                            <td class="small">{{ att.check_out|default:'—' }}</td>
+                            <td class="small">{{ att.work_hours }} hrs</td>
+                            <td><span class="badge {% if att.status == 'PRESENT' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">{{ att.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No attendance records logged</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Leave History</h5>
+            <div class="list-group list-group-flush">
+                {% for lr in leaves %}
+                <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ lr.leave_type.name }} ({{ lr.total_days }} days)</div>
+                        <div class="text-muted small">{{ lr.start_date }} to {{ lr.end_date }} &bull; {{ lr.reason }}</div>
+                    </div>
+                    <span class="badge {% if lr.status == 'APPROVED' %}badge-soft-success{% elif lr.status == 'REJECTED' %}badge-soft-danger{% else %}badge-soft-warning{% endif %}">
+                        {{ lr.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-3 small">No leave requests recorded</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

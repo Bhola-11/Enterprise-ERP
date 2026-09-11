@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Sales Order: {{ order.order_number }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Sales Order #{{ order.order_number }}</h3>
+        <p class="text-muted small mb-0">Customer: <strong>{{ order.customer }}</strong> &bull; Status: <span class="badge badge-soft-primary">{{ order.get_status_display }}</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if order.status == 'CONFIRMED' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="fulfill_delivery">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-truck me-1"></i> Fulfill & Deduct Stock</button>
+        </form>
+        {% endif %}
+        {% if order.status == 'SHIPPED' or order.status == 'CONFIRMED' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_invoice">
+            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-receipt me-1"></i> Generate Invoice</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'sales:order_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Ordered Product</th>
+                    <th>SKU</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Discount</th>
+                    <th class="text-end">Total ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for itm in items %}
+                <tr>
+                    <td class="fw-semibold">{{ itm.product.name }}</td>
+                    <td class="small text-muted">{{ itm.product.sku }}</td>
+                    <td>{{ itm.quantity }}</td>
+                    <td>${{ itm.unit_price|intcomma }}</td>
+                    <td>{{ itm.discount_percent }}%</td>
+                    <td class="text-end fw-bold">${{ itm.total|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Subtotal:</td>
+                    <td class="text-end fw-semibold">${{ order.subtotal|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="text-end fw-bold">Tax:</td>
+                    <td class="text-end fw-semibold">${{ order.tax_amount|intcomma }}</td>
+                </tr>
+                <tr class="table-primary">
+                    <td colspan="5" class="text-end fw-bold fs-5">Order Total:</td>
+                    <td class="text-end fw-bold fs-5">${{ order.total_amount|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% if invoices %}
+    <h6 class="fw-bold mb-3 border-bottom pb-2">Associated Invoices</h6>
+    <div class="list-group">
+        {% for inv in invoices %}
+        <a href="{% url 'sales:invoice_detail' inv.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                <span class="fw-bold">{{ inv.invoice_number }}</span>
+                <span class="text-muted small ms-2">{{ inv.invoice_date }}</span>
+            </div>
+            <div>
+                <span class="fw-bold me-3">${{ inv.total_amount|intcomma }}</span>
+                <span class="badge {% if inv.status == 'PAID' %}badge-soft-success{% else %}badge-soft-warning{% endif %}">{{ inv.get_status_display }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

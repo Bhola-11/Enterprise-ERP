@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results: "{{ query }}" | Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="fw-bold text-dark"><i class="bi bi-search text-primary me-2"></i>Global Search Results</h2>
+        <p class="text-muted">Federated query matches across all business records for: <strong class="text-dark">"{{ query }}"</strong></p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sales Orders & Invoices -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-cart-check text-primary me-2"></i>Sales Orders ({{ orders|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for order in orders %}
+                <a href="{% url 'sales:order_detail' order.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-primary">{{ order.order_number }}</span>
+                        <small class="text-muted d-block">{{ order.customer.company_name|default:order.customer }} - ${{ order.grand_total }}</small>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary">{{ order.status }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching sales orders.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-receipt text-success me-2"></i>Invoices ({{ invoices|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for inv in invoices %}
+                <a href="{% url 'sales:invoice_detail' inv.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-dark">{{ inv.invoice_number }}</span>
+                        <small class="text-muted d-block">${{ inv.total_amount }} (Due: ${{ inv.balance_due }})</small>
+                    </div>
+                    <span class="badge bg-info-subtle text-info">{{ inv.status }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching invoices.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-folder-check text-warning me-2"></i>Projects ({{ projects|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for p in projects %}
+                <a href="{% url 'projects:project_detail' p.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-dark">{{ p.name }}</span>
+                        <small class="text-muted d-block">Code: {{ p.code }} | Progress: {{ p.progress }}%</small>
+                    </div>
+                    <span class="badge bg-secondary">{{ p.status }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching projects.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contacts, Products, Employees, Tickets -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-box-seam text-info me-2"></i>Products & Inventory ({{ products|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for prod in products %}
+                <a href="{% url 'inventory:product_detail' prod.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-dark">{{ prod.name }}</span>
+                        <small class="text-muted d-block">SKU: {{ prod.sku }} | Stock: {{ prod.current_stock }}</small>
+                    </div>
+                    <span class="fw-bold text-primary">${{ prod.selling_price }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching products.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-people text-secondary me-2"></i>Employees ({{ employees|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for emp in employees %}
+                <a href="{% url 'hr:employee_detail' emp.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-dark">{{ emp.get_full_name }}</span>
+                        <small class="text-muted d-block">{{ emp.designation.title|default:"Staff" }} - {{ emp.department.name|default:"General" }}</small>
+                    </div>
+                    <span class="badge bg-light text-dark border">{{ emp.employee_id }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching employees.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold m-0 text-dark"><i class="bi bi-life-preserver text-danger me-2"></i>Support Tickets ({{ tickets|length }})</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for t in tickets %}
+                <a href="{% url 'support:ticket_detail' t.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold text-dark">{{ t.ticket_id }}: {{ t.subject }}</span>
+                        <small class="text-muted d-block">{{ t.customer.company_name|default:t.customer }}</small>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger">{{ t.priority }}</span>
+                </a>
+                {% empty %}
+                <div class="p-3 text-muted small">No matching support tickets.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Payslip: {{ payslip.employee.full_name }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Confidential Salary Payslip</h3>
+        <p class="text-muted small mb-0">{{ payslip.payrun.title }} &bull; Staff ID: <strong>{{ payslip.employee.employee_id }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'payroll:payrun_detail' payslip.payrun.id %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back to Payrun</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm p-5 border">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+                <div>
+                    <h4 class="fw-bold text-primary mb-1">NEXORA ENTERPRISE OS</h4>
+                    <div class="text-muted small">Official Salary Compensation Statement</div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold">{{ payslip.payrun.title }}</div>
+                    <span class="badge {% if payslip.is_paid %}badge-soft-success{% else %}badge-soft-warning{% endif %}">
+                        {% if payslip.is_paid %}Direct Disbursed{% else %}Pending Disbursal{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4 border-bottom pb-4">
+                <div class="col-md-6">
+                    <div class="small"><strong>Employee Name:</strong> {{ payslip.employee.full_name }}</div>
+                    <div class="small"><strong>Employee ID:</strong> {{ payslip.employee.employee_id }}</div>
+                    <div class="small"><strong>Designation:</strong> {{ payslip.employee.designation.title }}</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="small"><strong>Department:</strong> {{ payslip.employee.department.name }}</div>
+                    <div class="small"><strong>Payment Method:</strong> {{ payslip.payment_method }}</div>
+                    <div class="small"><strong>Disbursal Date:</strong> {{ payslip.payrun.end_date }}</div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-success border-bottom pb-2">Earnings & Allowances</h6>
+                    <div class="d-flex justify-content-between py-1 small">
+                        <span>Basic Salary:</span>
+                        <span class="fw-semibold">${{ payslip.basic_salary|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 small">
+                        <span>Housing & Transport Allowances:</span>
+                        <span class="fw-semibold">${{ payslip.allowances|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-top fw-bold">
+                        <span>Total Gross Earnings:</span>
+                        <span class="text-success">${{ payslip.gross_salary|intcomma }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-danger border-bottom pb-2">Statutory Deductions</h6>
+                    <div class="d-flex justify-content-between py-1 small">
+                        <span>Income Tax Withholding & PF:</span>
+                        <span class="fw-semibold text-danger">-${{ payslip.deductions|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-top fw-bold">
+                        <span>Total Deductions:</span>
+                        <span class="text-danger">-${{ payslip.deductions|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-light p-4 rounded-3 d-flex flex-row justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0">Net Salary Payable</h5>
+                    <div class="text-muted small">Deposited directly to employee primary bank account</div>
+                </div>
+                <h3 class="fw-bold text-success mb-0">${{ payslip.net_salary|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

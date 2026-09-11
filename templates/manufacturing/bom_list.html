@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Bill of Materials — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Bill of Materials (BOM)</h3>
+        <p class="text-muted small mb-0">Multi-level assembly components, raw materials formula, and unit production cost estimates.</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>BOM Code</th>
+                    <th>Finished Product Assembly</th>
+                    <th>Output Batch Qty</th>
+                    <th>Raw Material Components</th>
+                    <th>Estimated Material Cost</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bom in page_obj %}
+                <tr>
+                    <td class="fw-bold font-monospace"><a href="{% url 'manufacturing:bom_detail' bom.id %}">{{ bom.bom_number }}</a></td>
+                    <td class="fw-semibold">{{ bom.finished_product.name }}</td>
+                    <td class="small">{{ bom.quantity }} {{ bom.finished_product.uom.symbol }}</td>
+                    <td class="small">{{ bom.items.count }} raw materials</td>
+                    <td class="fw-bold text-primary">${{ bom.total_raw_material_cost|intcomma }}</td>
+                    <td>
+                        {% if bom.is_active %}
+                        <span class="badge badge-soft-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-soft-danger">Archived</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'manufacturing:bom_detail' bom.id %}" class="btn btn-sm btn-outline-primary">Structure</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No BOM recipes defined</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

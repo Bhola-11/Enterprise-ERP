@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Production Order: {{ order.order_number }} — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Production Order #{{ order.order_number }}</h3>
+        <p class="text-muted small mb-0">Assembly: <strong>{{ order.bom.finished_product.name }}</strong> &bull; Status: <span class="badge {% if order.status == 'COMPLETED' %}badge-soft-success{% elif order.status == 'IN_PROGRESS' %}badge-soft-warning{% else %}badge-soft-primary{% endif %}">{{ order.get_status_display }}</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if order.status == 'PLANNED' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start_production">
+            <button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-play-circle me-1"></i> Start Production & Issue Raw Materials</button>
+        </form>
+        {% endif %}
+        {% if order.status == 'IN_PROGRESS' %}
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="complete_production">
+            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i> Pass QC & Receive Finished Goods</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'manufacturing:order_list' %}" class="btn btn-light btn-sm border"><i class="bi bi-arrow-left me-1"></i> Back</a>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <div class="row g-4 mb-4 border-bottom pb-3">
+        <div class="col-md-6">
+            <h6 class="fw-bold text-muted text-uppercase small">Production Run Specifications</h6>
+            <div class="fs-5 fw-bold text-primary">{{ order.quantity_to_produce }} {{ order.bom.finished_product.uom.symbol }} of {{ order.bom.finished_product.name }}</div>
+            <div class="small text-muted">Work Center: {{ order.work_center.name|default:'Main Assembly Line' }}</div>
+            <div class="small text-muted">Scheduled: {{ order.start_date }} to {{ order.due_date }}</div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <h6 class="fw-bold text-muted text-uppercase small">Quality Control Status</h6>
+            {% if order.status == 'COMPLETED' %}
+            <div class="badge bg-success p-2 fs-6"><i class="bi bi-patch-check-fill me-1"></i> QA 100% Passed</div>
+            <div class="small text-muted mt-1">Finished units stored in inventory</div>
+            {% else %}
+            <div class="badge bg-secondary p-2 fs-6">Pending Assembly Completion</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <h6 class="fw-bold mb-3 border-bottom pb-2">Material Requisition & Consumption Plan</h6>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Component SKU</th>
+                    <th>Raw Material Name</th>
+                    <th>Formula Factor</th>
+                    <th>Total Required for Order</th>
+                    <th>Unit Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for itm in items %}
+                <tr>
+                    <td class="fw-bold font-monospace">{{ itm.raw_material.sku }}</td>
+                    <td class="fw-semibold">{{ itm.raw_material.name }}</td>
+                    <td class="small">{{ itm.quantity }} per BOM batch</td>
+                    <td class="fw-bold text-primary">{{ itm.quantity }} {{ itm.raw_material.uom.symbol }}</td>
+                    <td class="small text-muted">${{ itm.raw_material.cost_price|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

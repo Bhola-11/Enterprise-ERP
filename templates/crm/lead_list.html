@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Leads Management — Nexora OS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Leads & Prospects Directory</h3>
+        <p class="text-muted small mb-0">Track inbound inquiries, evaluate lead scores, and convert prospects to sales deals.</p>
+    </div>
+    <a href="{% url 'crm:lead_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add Lead</a>
+</div>
+
+<div class="card shadow-sm p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Search by name, company, email..." value="{{ search_query|default:'' }}">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All Statuses</option>
+                {% for code, label in statuses %}
+                <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Lead Name</th>
+                    <th>Company</th>
+                    <th>Email / Phone</th>
+                    <th>Score</th>
+                    <th>Budget</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in page_obj %}
+                <tr>
+                    <td class="fw-semibold"><a href="{% url 'crm:lead_detail' lead.id %}" class="text-decoration-none">{{ lead.first_name }} {{ lead.last_name }}</a></td>
+                    <td>{{ lead.company_name|default:'—' }}</td>
+                    <td class="small">{{ lead.email }}<br><span class="text-muted">{{ lead.phone }}</span></td>
+                    <td><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ lead.lead_score }}/100</span></td>
+                    <td class="fw-semibold">${{ lead.estimated_budget|intcomma }}</td>
+                    <td><span class="badge badge-soft-info">{{ lead.get_status_display }}</span></td>
+                    <td class="small">{{ lead.assigned_to.get_full_name|default:'Unassigned' }}</td>
+                    <td>
+                        {% if lead.status != 'CONVERTED' %}
+                        <a href="{% url 'crm:lead_convert' lead.id %}" class="btn btn-sm btn-outline-success">Convert</a>
+                        {% else %}
+                        <span class="badge bg-success bg-opacity-10 text-success">Converted</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No leads found matching criteria</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
