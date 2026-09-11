@@ -48,6 +48,9 @@ urlpatterns = [
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('reports/', include('reports.urls', namespace='reports')),
     path('audit/', include('audit.urls', namespace='audit')),
+    path('pos/', include('pos.urls', namespace='pos')),
+    path('taxation/', include('taxation.urls', namespace='taxation')),
+    path('reconciliation/', include('reconciliation.urls', namespace='reconciliation')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

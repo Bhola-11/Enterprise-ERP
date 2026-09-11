@@ -24,6 +24,9 @@ from documents.models import Folder, Document
 from workflows.models import WorkflowDefinition, WorkflowStage
 from core.models import SystemSetting, IntegrationConfig
 from notifications.models import Notification
+from pos.models import POSTerminal, POSSession, POSCustomerLoyalty, POSCouponPromotion, POSOrder, POSOrderItem, POSPayment
+from taxation.models import TaxJurisdiction, HSNSACCode, GSTTaxRate, EUVATRule, USStateNexusRate, EWayBillRecord, EInvoiceIRN
+from reconciliation.models import BankStatement, BankStatementLine, ReconciliationRule
 
 class Command(BaseCommand):
     help = 'Populates the ERP with realistic, interconnected enterprise demo data across all 24 modules'
@@ -655,4 +658,165 @@ class Command(BaseCommand):
             }
         )
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 24 modules!'))
+        # 18. Point of Sale (POS) Terminals & Retail Masters
+        terminal_main, _ = POSTerminal.objects.get_or_create(
+            terminal_code='POS-TRM-01',
+            defaults={
+                'name': 'Main Flagship Checkout Counter 1',
+                'branch': branch_hq,
+                'warehouse': wh_ny,
+                'ip_address': '192.168.1.101',
+                'status': 'ACTIVE',
+                'receipt_header': 'Nexora Enterprise Flagship NYC\nOne World Trade Center',
+                'receipt_footer': 'Thank you for shopping with us!\nExchange within 30 days.'
+            }
+        )
+        terminal_express, _ = POSTerminal.objects.get_or_create(
+            terminal_code='POS-TRM-02',
+            defaults={
+                'name': 'Express Mobile Kiosk 2',
+                'branch': branch_hq,
+                'warehouse': wh_ny,
+                'ip_address': '192.168.1.102',
+                'status': 'ACTIVE'
+            }
+        )
+
+        coupon_welcome, _ = POSCouponPromotion.objects.get_or_create(
+            code='NEXORA10',
+            defaults={
+                'name': '10% Enterprise Loyalty Welcome',
+                'discount_type': 'PERCENT',
+                'discount_value': Decimal('10.00'),
+                'min_order_value': Decimal('100.00'),
+                'max_discount_cap': Decimal('50.00'),
+                'valid_from': timezone.now() - timedelta(days=30),
+                'valid_to': timezone.now() + timedelta(days=365),
+                'usage_limit': 5000,
+                'is_active': True
+            }
+        )
+
+        # 19. Global Multi-Country Tax Localizations
+        tax_in, _ = TaxJurisdiction.objects.get_or_create(
+            code='IN-GST',
+            defaults={
+                'country': 'IN',
+                'name': 'India Central & State GST',
+                'tax_authority_name': 'Goods and Services Tax Network (GSTN)',
+                'filing_frequency': 'MONTHLY',
+                'currency': 'INR',
+                'is_default': True,
+                'e_invoicing_mandatory': True,
+                'e_way_bill_mandatory': True,
+                'e_way_bill_threshold': Decimal('50000.00')
+            }
+        )
+        tax_us, _ = TaxJurisdiction.objects.get_or_create(
+            code='US-SALES',
+            defaults={
+                'country': 'US',
+                'name': 'United States State & Local Sales Tax',
+                'tax_authority_name': 'State Department of Taxation & Finance',
+                'filing_frequency': 'QUARTERLY',
+                'currency': 'USD'
+            }
+        )
+
+        # HSN / SAC Codes
+        hsn_hardware, _ = HSNSACCode.objects.get_or_create(
+            code='84713010',
+            defaults={
+                'description': 'Personal computers, laptops and microcomputers',
+                'code_type': 'HSN',
+                'standard_gst_rate': Decimal('18.00')
+            }
+        )
+        hsn_software, _ = HSNSACCode.objects.get_or_create(
+            code='998314',
+            defaults={
+                'description': 'Information technology and software design/consulting services',
+                'code_type': 'SAC',
+                'standard_gst_rate': Decimal('18.00')
+            }
+        )
+
+        # US State Nexus
+        USStateNexusRate.objects.get_or_create(
+            state_code='NY',
+            defaults={
+                'state_name': 'New York',
+                'state_sales_tax_rate': Decimal('4.00'),
+                'avg_local_sales_tax_rate': Decimal('4.50'),
+                'economic_nexus_revenue_threshold': Decimal('500000.00'),
+                'has_physical_nexus': True,
+                'has_economic_nexus': True
+            }
+        )
+        USStateNexusRate.objects.get_or_create(
+            state_code='CA',
+            defaults={
+                'state_name': 'California',
+                'state_sales_tax_rate': Decimal('7.25'),
+                'avg_local_sales_tax_rate': Decimal('1.75'),
+                'economic_nexus_revenue_threshold': Decimal('500000.00'),
+                'has_physical_nexus': False,
+                'has_economic_nexus': True
+            }
+        )
+
+        # EU VAT OSS Rules
+        EUVATRule.objects.get_or_create(
+            member_state_code='DE',
+            defaults={
+                'country_name': 'Germany',
+                'standard_vat_rate': Decimal('19.00'),
+                'reduced_vat_rate': Decimal('7.00'),
+                'oss_scheme_enabled': True,
+                'reverse_charge_b2b': True
+            }
+        )
+        EUVATRule.objects.get_or_create(
+            member_state_code='FR',
+            defaults={
+                'country_name': 'France',
+                'standard_vat_rate': Decimal('20.00'),
+                'reduced_vat_rate': Decimal('5.50'),
+                'oss_scheme_enabled': True,
+                'reverse_charge_b2b': True
+            }
+        )
+
+        # 20. Bank Reconciliation Rules
+        ReconciliationRule.objects.get_or_create(
+            name='Auto-Match Exact Date & Amount',
+            defaults={
+                'priority': 1,
+                'rule_type': 'EXACT_AMOUNT_AND_DATE',
+                'min_confidence_score': 95,
+                'is_active': True
+            }
+        )
+        ReconciliationRule.objects.get_or_create(
+            name='Auto-Match Customer Payment Reference',
+            defaults={
+                'priority': 2,
+                'rule_type': 'AMOUNT_AND_REF',
+                'min_confidence_score': 90,
+                'is_active': True
+            }
+        )
+        ReconciliationRule.objects.get_or_create(
+            name='Bank Service Fee Auto-Adjustment',
+            defaults={
+                'priority': 3,
+                'rule_type': 'DESCRIPTION_REGEX',
+                'regex_pattern': 'BANK CHARGE|MONTHLY FEE|WIRE FEE|SERVICE CHG',
+                'contra_account': Account.objects.filter(account_type='EXPENSE', name__icontains='Expense').first(),
+                'auto_post_adjusting_entry': True,
+                'min_confidence_score': 85,
+                'is_active': True
+            }
+        )
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 27 modules!'))

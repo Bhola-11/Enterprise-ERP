@@ -56,6 +56,9 @@ INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
     'audit.apps.AuditConfig',
     'api.apps.ApiConfig',
+    'pos.apps.PosConfig',
+    'taxation.apps.TaxationConfig',
+    'reconciliation.apps.ReconciliationConfig',
 ]
 
 MIDDLEWARE = [

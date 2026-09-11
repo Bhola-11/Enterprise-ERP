@@ -67,6 +67,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{% url 'pos:terminal_list' %}" class="nav-link {% if request.resolver_match.app_name == 'pos' %}active{% endif %}">
+                            <i class="fa-solid fa-cash-register"></i> Point of Sale (POS)
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{% url 'support:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'support' %}active{% endif %}">
                             <i class="fa-solid fa-headset"></i> Customer Support
                         </a>
@@ -103,6 +108,16 @@
                     <li class="nav-item">
                         <a href="{% url 'accounting:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'accounting' %}active{% endif %}">
                             <i class="fa-solid fa-scale-balanced"></i> Double-Entry GL
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'taxation:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'taxation' %}active{% endif %}">
+                            <i class="fa-solid fa-landmark"></i> Tax & Compliance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'reconciliation:statement_list' %}" class="nav-link {% if request.resolver_match.app_name == 'reconciliation' %}active{% endif %}">
+                            <i class="fa-solid fa-building-columns"></i> Bank Reconciliation
                         </a>
                     </li>
                     <li class="nav-item">

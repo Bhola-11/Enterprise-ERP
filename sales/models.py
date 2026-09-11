@@ -30,6 +30,10 @@ class Customer(models.Model):
             return f"{full} ({self.company_name})"
         return full
 
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
 class Quotation(models.Model):
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
