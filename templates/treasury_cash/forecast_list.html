@@ -1,0 +1,61 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Dynamic rolling 90-day cash flow projections combining AR collections, AP disbursements, and payroll.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'treasury_cash:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calculator me-1"></i> Recalculate 90-Day Forecast
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 font-monospace small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Forecast Period</th>
+                            <th class="text-end">Opening Liquid Cash</th>
+                            <th class="text-end text-success">Projected AR Inflows</th>
+                            <th class="text-end text-danger">Projected AP Outflows</th>
+                            <th class="text-end text-warning">Payroll / Taxes</th>
+                            <th class="text-end fw-bold">Projected Closing Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in forecasts %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-primary">{{ f.forecast_name }}</div>
+                                <small class="text-muted">{{ f.start_date }} to {{ f.end_date }}</small>
+                            </td>
+                            <td class="text-end fw-bold">${{ f.opening_cash_balance }}</td>
+                            <td class="text-end text-success">+${{ f.projected_inflows_ar }}</td>
+                            <td class="text-end text-danger">-${{ f.projected_outflows_ap }}</td>
+                            <td class="text-end text-warning">-${{ f.projected_payroll_tax }}</td>
+                            <td class="text-end fw-bold text-dark fs-6">${{ f.projected_closing_balance }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">No liquidity forecasts generated. Click 'Recalculate 90-Day Forecast' above!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

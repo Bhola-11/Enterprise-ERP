@@ -1,0 +1,114 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Foreign exchange derivative positions, forward contracts, and currency risk mitigation portfolio.</p>
+        </div>
+        <a href="{% url 'treasury_cash:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Contracts Table -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Contract #</th>
+                                    <th>Instrument</th>
+                                    <th>Counterparty Bank</th>
+                                    <th class="text-end">Notional Amount</th>
+                                    <th class="text-end">Strike Rate</th>
+                                    <th class="text-center">Maturity</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in hedges %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ h.contract_number }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ h.get_contract_type_display }}</span></td>
+                                    <td>{{ h.counterparty_bank }}</td>
+                                    <td class="text-end fw-bold">{{ h.base_currency }} ${{ h.notional_amount }}</td>
+                                    <td class="text-end fw-bold text-success">{{ h.strike_rate }}</td>
+                                    <td class="text-center">{{ h.maturity_date|date:"Y-m-d" }}</td>
+                                    <td class="text-center">
+                                        {% if h.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ h.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No FX hedging derivative contracts booked.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Hedge Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-plus-circle me-2 text-primary"></i>Book FX Contract</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Contract Ref # *</label>
+                            {{ form.contract_number }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Instrument Type *</label>
+                            {{ form.contract_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Counterparty Bank *</label>
+                            {{ form.counterparty_bank }}
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Base Currency</label>
+                                {{ form.base_currency }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Quote Currency</label>
+                                {{ form.quote_currency }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Notional Amount *</label>
+                            {{ form.notional_amount }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Agreed Strike Rate *</label>
+                            {{ form.strike_rate }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Maturity Settlement Date *</label>
+                            {{ form.maturity_date }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-shield-halved me-1"></i> Book Contract
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

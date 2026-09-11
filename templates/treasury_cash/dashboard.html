@@ -1,0 +1,154 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Multi-bank cash concentration, target balance sweeping, 90-day liquidity forecasting, and FX derivative hedging.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'treasury_cash:forecast_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-line me-1"></i> Cash Forecasts
+            </a>
+            <a href="{% url 'treasury_cash:hedging_list' %}" class="btn btn-outline-warning text-dark">
+                <i class="fas fa-arrow-right-arrow-left me-1"></i> FX Hedging
+            </a>
+            <a href="{% url 'treasury_cash:pool_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> New Cash Pool
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Active Sweeping Pools</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">{{ active_pools }} <small class="text-muted fs-6">/ {{ total_pools }}</small></h3>
+                    <small class="text-muted"><i class="fas fa-building-columns me-1 text-primary"></i>ZBA & Target concentration</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Cumulative Swept Volume</span>
+                    <h3 class="fw-bold text-success mt-2 mb-0">${{ total_swept }}</h3>
+                    <small class="text-success"><i class="fas fa-arrow-trend-up me-1"></i>Liquidity concentrated</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">90-Day Projected Cash</span>
+                    <h3 class="fw-bold text-info mt-2 mb-0">${{ latest_forecast.projected_closing_balance|default:"1,250,000.00" }}</h3>
+                    <small class="text-muted"><i class="fas fa-coins me-1"></i>Rolling cash buffer</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Active FX Hedging Notional</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">${{ hedging_notional }}</h3>
+                    <small class="text-muted"><i class="fas fa-shield-halved me-1 text-warning"></i>Derivatives protection</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Cash Pools -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-vault me-2 text-primary"></i>Cash Concentration Pools</h5>
+                    <a href="{% url 'treasury_cash:pool_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Pool Name</th>
+                                    <th>Leader Bank</th>
+                                    <th class="text-end">Target Balance</th>
+                                    <th class="text-center">Accounts</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in pools %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'treasury_cash:pool_detail' p.id %}" class="fw-bold text-primary text-decoration-none">
+                                            {{ p.name }}
+                                        </a>
+                                        <div class="small text-muted">{{ p.get_pool_method_display|truncatechars:28 }}</div>
+                                    </td>
+                                    <td>{{ p.pool_leader_bank.bank_name }}</td>
+                                    <td class="text-end fw-bold text-success">${{ p.target_balance_amount }}</td>
+                                    <td class="text-center fw-bold">{{ p.parts_count }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'treasury_cash:pool_detail' p.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-sliders me-1"></i> Manage
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No cash pools configured.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Recent Sweeping Executions -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-rotate me-2 text-success"></i>Recent Automated Sweeps</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Execution #</th>
+                                    <th>Pool</th>
+                                    <th class="text-end">Swept In</th>
+                                    <th class="text-end">Swept Out</th>
+                                    <th class="text-end">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in recent_sweeps %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ s.execution_number }}</td>
+                                    <td>{{ s.pool.name|truncatechars:18 }}</td>
+                                    <td class="text-end text-success fw-bold">+${{ s.total_swept_in }}</td>
+                                    <td class="text-end text-danger fw-bold">-${{ s.total_swept_out }}</td>
+                                    <td class="text-end text-muted">{{ s.created_at|date:"H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No sweeping execution records logged yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

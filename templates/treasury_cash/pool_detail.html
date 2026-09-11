@@ -1,0 +1,138 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">{{ pool.name }}</h1>
+                <span class="badge bg-primary">{{ pool.currency }}</span>
+            </div>
+            <p class="text-muted mb-0">Master Header Account: <strong>{{ pool.pool_leader_bank.bank_name }}</strong> (Target: ${{ pool.target_balance_amount }})</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'treasury_cash:pool_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> All Pools
+            </a>
+            <form method="POST" action="{% url 'treasury_cash:pool_execute_sweep' pool.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-rotate me-1"></i> Execute Sweeping Run Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Participant Bank Accounts Table -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-building-columns me-2 text-primary"></i>Participating Bank Accounts ({{ participants.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Bank Account Name</th>
+                                    <th>Account #</th>
+                                    <th class="text-end">Current Balance</th>
+                                    <th class="text-end">Min Transfer Threshold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for part in participants %}
+                                <tr>
+                                    <td class="fw-bold">Priority #{{ part.priority }}</td>
+                                    <td class="text-dark fw-semibold">{{ part.bank_account.bank_name }}</td>
+                                    <td>{{ part.bank_account.account_number }}</td>
+                                    <td class="text-end fw-bold text-success">${{ part.bank_account.current_balance }}</td>
+                                    <td class="text-end text-muted">${{ part.min_transfer_threshold }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No participant bank accounts attached.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sweeping History -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-clock-rotate-left me-2 text-success"></i>Sweeping Execution History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Execution #</th>
+                                    <th class="text-end">Total In</th>
+                                    <th class="text-end">Total Out</th>
+                                    <th class="text-center">Transfers</th>
+                                    <th class="text-end">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ex in executions %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ ex.execution_number }}</td>
+                                    <td class="text-end text-success fw-bold">+${{ ex.total_swept_in }}</td>
+                                    <td class="text-end text-danger fw-bold">-${{ ex.total_swept_out }}</td>
+                                    <td class="text-center fw-bold">{{ ex.transfers_count }}</td>
+                                    <td class="text-end text-muted">{{ ex.created_at|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No sweeping execution records logged yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Participant Form -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-plus-circle me-2"></i>Add Participant Account</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Bank Account *</label>
+                            {{ part_form.bank_account }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Sweeping Priority</label>
+                            {{ part_form.priority }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Min Transfer Threshold ($)</label>
+                            {{ part_form.min_transfer_threshold }}
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            {{ part_form.is_active }}
+                            <label class="form-check-label fw-semibold ms-2">Enable Participation</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-link me-1"></i> Attach Account
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
