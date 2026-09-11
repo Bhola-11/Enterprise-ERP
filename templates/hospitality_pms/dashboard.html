@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-building-check me-2 text-primary"></i>Hospitality & Hotel PMS Hub</h1>
+            <p class="text-muted mb-0">Front Desk Operations, Live Room Rack, Guest Folios & Housekeeping Dispatch.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hospitality_pms:room_matrix' %}" class="btn btn-outline-secondary"><i class="bi bi-grid-3x3-gap me-1"></i>Room Matrix</a>
+            <a href="{% url 'hospitality_pms:reservation_create' %}" class="btn btn-primary shadow-sm"><i class="bi bi-calendar-plus me-1"></i>New Booking</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Occupancy Rate</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ occupancy_rate }}% ({{ occupied_rooms }}/{{ total_rooms }})</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Available Clean Rooms</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ available_rooms }} Rooms</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-warning border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Housekeeping / Dirty</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ dirty_rooms }} Rooms</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-info border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Today's Movement</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ arrivals_today }} In / {{ departures_today }} Out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-calendar-check me-1"></i>Recent Hotel Reservations</h6>
+            <a href="{% url 'hospitality_pms:reservation_list' %}" class="btn btn-sm btn-outline-primary">View All Bookings</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Confirmation</th>
+                            <th>Guest Name</th>
+                            <th>Room Type</th>
+                            <th>Room #</th>
+                            <th>Dates</th>
+                            <th>Total Charge</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent_reservations %}
+                        <tr>
+                            <td><a href="{% url 'hospitality_pms:reservation_detail' r.id %}" class="fw-bold">{{ r.confirmation_code }}</a></td>
+                            <td>{{ r.guest.full_name }}</td>
+                            <td>{{ r.room_type.name }}</td>
+                            <td><strong>{{ r.room.room_number|default:"Unassigned" }}</strong></td>
+                            <td><small>{{ r.check_in_date|date:"d M" }} - {{ r.check_out_date|date:"d M Y" }}</small></td>
+                            <td class="fw-bold text-primary">${{ r.total_room_charge }}</td>
+                            <td><span class="badge {% if r.status == 'CHECKED_IN' %}bg-success{% elif r.status == 'CONFIRMED' %}bg-info{% else %}bg-secondary{% endif %}">{{ r.get_status_display }}</span></td>
+                            <td><a href="{% url 'hospitality_pms:reservation_detail' r.id %}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i> Details</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No reservations booked.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

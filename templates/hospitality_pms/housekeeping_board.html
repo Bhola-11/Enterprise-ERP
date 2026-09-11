@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-stars me-2 text-primary"></i>Housekeeping & Room Operations</h1>
+            <p class="text-muted mb-0">Live cleaning boards, room inspection tickets and linen changes.</p>
+        </div>
+        <a href="{% url 'hospitality_pms:room_matrix' %}" class="btn btn-outline-secondary"><i class="bi bi-grid-3x3-gap me-1"></i>Room Matrix</a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-list-task me-1"></i>Active Cleaning Tickets</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Room #</th>
+                            <th>Task Type</th>
+                            <th>Assigned Housekeeper</th>
+                            <th>Notes</th>
+                            <th>Logged At</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tasks %}
+                        <tr>
+                            <td><strong class="fs-5">Room {{ t.room.room_number }}</strong> ({{ t.room.room_type.code }})</td>
+                            <td><span class="badge bg-secondary">{{ t.get_task_type_display }}</span></td>
+                            <td>{{ t.assigned_housekeeper|default:"Floor Staff Pool" }}</td>
+                            <td><small>{{ t.notes|default:"Routine turnover" }}</small></td>
+                            <td>{{ t.created_at|date:"d M H:i" }}</td>
+                            <td>
+                                <span class="badge {% if t.status == 'INSPECTED_CLEAN' %}bg-success{% elif t.status == 'IN_PROGRESS' %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+                                    {{ t.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-4 text-muted">No pending housekeeping tasks. All rooms clean.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
