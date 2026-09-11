@@ -136,6 +136,21 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{% url 'consolidation:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'consolidation' %}active{% endif %}">
+                            <i class="fa-solid fa-globe"></i> Financial Consolidation (IAS 21)
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'treasury_cash:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'treasury_cash' %}active{% endif %}">
+                            <i class="fa-solid fa-vault"></i> Treasury & Cash Pooling
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'fixed_assets_depr:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'fixed_assets_depr' %}active{% endif %}">
+                            <i class="fa-solid fa-calculator"></i> Capital Asset Depreciation
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{% url 'payroll:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'payroll' %}active{% endif %}">
                             <i class="fa-solid fa-money-check-dollar"></i> Payroll Engine
                         </a>

@@ -40,6 +40,18 @@ from integrations_sdk.models import (
     IntegrationConnector, EntitySyncMapping, IntegrationSyncLog
 )
 from api_gateway.services import APIKeyManager
+from consolidation.models import (
+    ConsolidationGroup, CurrencyExchangeRate, InterCompanyEliminationRule, ConsolidatedStatement
+)
+from consolidation.services import ConsolidationEngine
+from treasury_cash.models import (
+    CashPoolHeader, CashPoolParticipant, CashSweepingExecution, LiquidityForecast, FXHedgingContract
+)
+from treasury_cash.services import CashSweepingEngine, LiquidityForecastingService
+from fixed_assets_depr.models import (
+    DepreciableAsset, AssetDepreciationPeriod, AssetImpairmentRecord, AssetDisposalRecord
+)
+from fixed_assets_depr.services import DepreciationEngine, AssetImpairmentService, AssetDisposalService
 
 
 import os
@@ -1319,6 +1331,205 @@ class Command(BaseCommand):
             }
         )
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 33 modules!'))
+        # 34. Multi-Branch Financial Consolidation (IAS 21)
+        sub_eu_org, _ = Organization.objects.get_or_create(
+            name='Nexora Europe Technologies GmbH',
+            defaults={'currency': 'EUR', 'tax_id': 'DE-398172635'}
+        )
+        sub_apac_org, _ = Organization.objects.get_or_create(
+            name='Nexora Asia Pacific Pte Ltd',
+            defaults={'currency': 'SGD', 'tax_id': 'SG-202391827M'}
+        )
+
+        CurrencyExchangeRate.objects.get_or_create(
+            from_currency='EUR', to_currency='USD',
+            defaults={
+                'spot_rate': Decimal('1.085000'),
+                'average_monthly_rate': Decimal('1.082000'),
+                'closing_rate': Decimal('1.090000'),
+                'effective_date': date.today()
+            }
+        )
+        CurrencyExchangeRate.objects.get_or_create(
+            from_currency='SGD', to_currency='USD',
+            defaults={
+                'spot_rate': Decimal('0.745000'),
+                'average_monthly_rate': Decimal('0.742000'),
+                'closing_rate': Decimal('0.748000'),
+                'effective_date': date.today()
+            }
+        )
+        CurrencyExchangeRate.objects.get_or_create(
+            from_currency='GBP', to_currency='USD',
+            defaults={
+                'spot_rate': Decimal('1.275000'),
+                'average_monthly_rate': Decimal('1.271000'),
+                'closing_rate': Decimal('1.280000'),
+                'effective_date': date.today()
+            }
+        )
+
+        cons_group, _ = ConsolidationGroup.objects.get_or_create(
+            code='GRP-GLOBAL-CORP',
+            defaults={
+                'name': 'Nexora Global Holdings Worldwide Group',
+                'parent_organization': org,
+                'reporting_currency': 'USD',
+                'fiscal_year_end_month': 12
+            }
+        )
+        cons_group.subsidiary_organizations.add(sub_eu_org, sub_apac_org)
+
+        InterCompanyEliminationRule.objects.get_or_create(
+            group=cons_group,
+            rule_name='Eliminate Intercompany Trade AR / AP Balances',
+            defaults={
+                'rule_type': 'AR_AP_BALANCE',
+                'source_account_code': '1100',
+                'offset_account_code': '2010',
+                'is_active': True
+            }
+        )
+        InterCompanyEliminationRule.objects.get_or_create(
+            group=cons_group,
+            rule_name='Eliminate Intercompany Transfer Revenue / COGS',
+            defaults={
+                'rule_type': 'REVENUE_EXPENSE',
+                'source_account_code': '4010',
+                'offset_account_code': '5010',
+                'is_active': True
+            }
+        )
+
+        ConsolidationEngine.generate_consolidated_report(
+            group=cons_group,
+            statement_type='BALANCE_SHEET',
+            period_start=date(2026, 1, 1),
+            period_end=date(2026, 12, 31),
+            user=users['admin@nexora.com']
+        )
+
+        # 35. Corporate Treasury & Cash Concentration Pooling
+        acc_jpm_gl, _ = Account.objects.get_or_create(code='1010-JPM', defaults={'name': 'JPM Master Liquidity GL', 'account_type': 'ASSET', 'balance': Decimal('1250000.00')})
+        acc_svb_gl, _ = Account.objects.get_or_create(code='1020-SVB', defaults={'name': 'SVB Operating GL', 'account_type': 'ASSET', 'balance': Decimal('320000.00')})
+        acc_db_gl, _ = Account.objects.get_or_create(code='1030-DB', defaults={'name': 'Deutsche Bank EUR GL', 'account_type': 'ASSET', 'balance': Decimal('480000.00')})
+
+        bank_jpm, _ = BankAccount.objects.get_or_create(
+            account_number='JPM-MASTER-99182',
+            defaults={
+                'account_name': 'Global Master Liquidity Header Account',
+                'bank_name': 'J.P. Morgan Chase & Co.',
+                'gl_account': acc_jpm_gl,
+                'currency': 'USD',
+                'balance': Decimal('1250000.00')
+            }
+        )
+        bank_svb, _ = BankAccount.objects.get_or_create(
+            account_number='SVB-DISB-44910',
+            defaults={
+                'account_name': 'West Coast Payroll & AP Disbursement',
+                'bank_name': 'Silicon Valley Bank',
+                'gl_account': acc_svb_gl,
+                'currency': 'USD',
+                'balance': Decimal('320000.00')
+            }
+        )
+        bank_db, _ = BankAccount.objects.get_or_create(
+            account_number='DB-FRANKFURT-11827',
+            defaults={
+                'account_name': 'Europe Treasury Concentration Account',
+                'bank_name': 'Deutsche Bank AG',
+                'gl_account': acc_db_gl,
+                'currency': 'EUR',
+                'balance': Decimal('480000.00')
+            }
+        )
+
+        pool_na, _ = CashPoolHeader.objects.get_or_create(
+            pool_code='POOL-NA-MASTER',
+            defaults={
+                'name': 'North America Zero-Balance Concentration Pool',
+                'pool_method': 'ZERO_BALANCE_SWEEP',
+                'pool_leader_bank': bank_jpm,
+                'target_balance_amount': Decimal('50000.00'),
+                'currency': 'USD'
+            }
+        )
+        CashPoolParticipant.objects.get_or_create(
+            pool=pool_na,
+            bank_account=bank_svb,
+            defaults={'min_transfer_threshold': Decimal('5000.00'), 'is_active': True}
+        )
+
+        CashSweepingEngine.execute_sweeping_run(pool_na, user=users['admin@nexora.com'])
+        LiquidityForecastingService.generate_90day_forecast(forecast_name="Q1-Q2 2026 Rolling Treasury Forecast")
+
+        FXHedgingContract.objects.get_or_create(
+            contract_number='FX-FWD-EURUSD-2026-01',
+            defaults={
+                'contract_type': 'FORWARD',
+                'counterparty_bank': 'Barclays Investment Bank',
+                'notional_amount': Decimal('1000000.00'),
+                'base_currency': 'EUR',
+                'quote_currency': 'USD',
+                'strike_rate': Decimal('1.092500'),
+                'maturity_date': date(2026, 6, 30),
+                'mark_to_market_value': Decimal('12500.00'),
+                'status': 'ACTIVE'
+            }
+        )
+
+        # 36. Fixed Asset Lifecycle & Capital Depreciation (IAS 16 / MACRS)
+        acc_fa_mach, _ = Account.objects.get_or_create(code='15100', defaults={'name': 'Advanced Robotics & CNC Plant', 'account_type': 'ASSET', 'balance': Decimal('850000.00')})
+        acc_fa_accum, _ = Account.objects.get_or_create(code='15910', defaults={'name': 'Accumulated Depr - Advanced Robotics', 'account_type': 'ASSET', 'balance': Decimal('0.00')})
+        acc_fa_exp, _ = Account.objects.get_or_create(code='61100', defaults={'name': 'Depreciation Expense - Machinery', 'account_type': 'EXPENSE', 'balance': Decimal('0.00')})
+
+        fa1, _ = DepreciableAsset.objects.get_or_create(
+            asset_tag='FA-ROBOT-900',
+            defaults={
+                'asset_name': 'KUKA 6-Axis High Precision Robotic Welder Cell',
+                'category_name': 'Robotics & Industrial Automation',
+                'acquisition_date': date(2025, 1, 15),
+                'acquisition_cost': Decimal('360000.00'),
+                'salvage_value': Decimal('30000.00'),
+                'useful_life_months': 60,
+                'depreciation_method': 'STRAIGHT_LINE',
+                'asset_gl_account': acc_fa_mach,
+                'accumulated_depr_gl_account': acc_fa_accum,
+                'depreciation_expense_gl_account': acc_fa_exp,
+                'net_book_value': Decimal('360000.00'),
+                'accumulated_depreciation': Decimal('0.00'),
+                'location_facility': 'Detroit Advanced Manufacturing Hub'
+            }
+        )
+        DepreciationEngine.generate_full_schedule(fa1)
+        # Post first 3 periods
+        for p in fa1.depreciation_schedule.all()[:3]:
+            DepreciationEngine.post_depreciation_period(p, user=users['admin@nexora.com'])
+
+        fa2, _ = DepreciableAsset.objects.get_or_create(
+            asset_tag='FA-CNC-500',
+            defaults={
+                'asset_name': 'Hermle 5-Axis Precision Machining Center C42U',
+                'category_name': 'Industrial Machining',
+                'acquisition_date': date(2025, 6, 1),
+                'acquisition_cost': Decimal('480000.00'),
+                'salvage_value': Decimal('40000.00'),
+                'useful_life_months': 48,
+                'depreciation_method': 'DOUBLE_DECLINING',
+                'asset_gl_account': acc_fa_mach,
+                'accumulated_depr_gl_account': acc_fa_accum,
+                'depreciation_expense_gl_account': acc_fa_exp,
+                'net_book_value': Decimal('480000.00'),
+                'accumulated_depreciation': Decimal('0.00'),
+                'location_facility': 'Stuttgart High-Tech Prototype Facility'
+            }
+        )
+        DepreciationEngine.generate_full_schedule(fa2)
+        for p in fa2.depreciation_schedule.all()[:2]:
+            DepreciationEngine.post_depreciation_period(p, user=users['admin@nexora.com'])
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 36 modules!'))
+
 
 

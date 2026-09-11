@@ -70,6 +70,9 @@ INSTALLED_APPS = [
     'api_gateway.apps.ApiGatewayConfig',
     'webhooks_engine.apps.WebhooksEngineConfig',
     'integrations_sdk.apps.IntegrationsSdkConfig',
+    'consolidation.apps.ConsolidationConfig',
+    'treasury_cash.apps.TreasuryCashConfig',
+    'fixed_assets_depr.apps.FixedAssetsDeprConfig',
 ]
 
 MIDDLEWARE = [

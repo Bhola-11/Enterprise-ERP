@@ -62,6 +62,9 @@ urlpatterns = [
     path('gateway/', include('api_gateway.urls', namespace='api_gateway')),
     path('webhooks/', include('webhooks_engine.urls', namespace='webhooks_engine')),
     path('integrations/', include('integrations_sdk.urls', namespace='integrations_sdk')),
+    path('consolidation/', include('consolidation.urls', namespace='consolidation')),
+    path('treasury/', include('treasury_cash.urls', namespace='treasury_cash')),
+    path('assets/depreciation/', include('fixed_assets_depr.urls', namespace='fixed_assets_depr')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),
