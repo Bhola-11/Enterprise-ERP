@@ -1,0 +1,141 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Multi-entity financial consolidation, IAS 21 currency translation, and intercompany elimination engine.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'consolidation:rates_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-money-bill-transfer me-1"></i> FX Rates
+            </a>
+            <a href="{% url 'consolidation:group_create' %}" class="btn btn-outline-primary">
+                <i class="fas fa-building me-1"></i> New Group
+            </a>
+            <a href="{% url 'consolidation:run_wizard' %}" class="btn btn-primary">
+                <i class="fas fa-calculator me-1"></i> Run Consolidation
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Consolidation Groups</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">{{ active_groups }} <small class="text-muted fs-6">/ {{ total_groups }}</small></h3>
+                    <small class="text-muted"><i class="fas fa-sitemap me-1 text-primary"></i>Corporate hierarchies</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Consolidated Statements</span>
+                    <h3 class="fw-bold text-success mt-2 mb-0">{{ total_statements }}</h3>
+                    <small class="text-success"><i class="fas fa-file-invoice-dollar me-1"></i>Balance Sheets & P&L</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Eliminated Intercompany Volume</span>
+                    <h3 class="fw-bold text-warning mt-2 mb-0">${{ total_eliminations }}</h3>
+                    <small class="text-muted"><i class="fas fa-filter-circle-xmark me-1"></i>Double-counting removed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">IAS 21 FX Currencies</span>
+                    <h3 class="fw-bold text-info mt-2 mb-0">{{ exchange_rates.count }}</h3>
+                    <small class="text-muted"><i class="fas fa-coins me-1"></i>Spot & Closing parities</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Recent Consolidated Statements -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-chart-pie me-2 text-primary"></i>Recent Consolidated Statements</h5>
+                    <a href="{% url 'consolidation:run_wizard' %}" class="btn btn-sm btn-primary">Generate New</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Statement #</th>
+                                    <th>Group Name</th>
+                                    <th>Type</th>
+                                    <th>Period Ending</th>
+                                    <th class="text-end">Consolidated Total</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in recent_statements %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'consolidation:statement_detail' s.id %}" class="fw-bold text-primary text-decoration-none">
+                                            {{ s.statement_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ s.group.name }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ s.get_statement_type_display|truncatechars:20 }}</span></td>
+                                    <td>{{ s.period_end|date:"Y-m-d" }}</td>
+                                    <td class="text-end fw-bold text-success">${{ s.net_consolidated_total }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{ s.status }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No consolidated statements generated yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Active Groups & FX Rates -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-sitemap me-2 text-primary"></i>Consolidation Groups</h5>
+                    <a href="{% url 'consolidation:group_list' %}" class="btn btn-sm btn-outline-secondary">All Groups</a>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for g in groups %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <a href="{% url 'consolidation:group_detail' g.id %}" class="fw-bold text-dark text-decoration-none">
+                                    {{ g.name }}
+                                </a>
+                                <div class="small text-muted">Parent: {{ g.parent_organization.name }} ({{ g.reporting_currency }})</div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ g.statements_count }} Statements</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4 text-muted">No corporate groups registered.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

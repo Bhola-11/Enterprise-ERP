@@ -1,0 +1,73 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Consolidation corporate groups, holding structures, and subsidiary mappings.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'consolidation:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-line me-1"></i> Dashboard
+            </a>
+            <a href="{% url 'consolidation:group_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Create Group
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Code</th>
+                            <th>Parent Holding Entity</th>
+                            <th>Reporting Currency</th>
+                            <th class="text-center">Year End</th>
+                            <th class="text-center">Statements</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in groups %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'consolidation:group_detail' g.id %}" class="fw-bold text-primary text-decoration-none">
+                                    {{ g.name }}
+                                </a>
+                            </td>
+                            <td><code>{{ g.code }}</code></td>
+                            <td>{{ g.parent_organization.name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ g.reporting_currency }}</span></td>
+                            <td class="text-center">Month {{ g.fiscal_year_end_month }}</td>
+                            <td class="text-center fw-bold">{{ g.statements_count }}</td>
+                            <td class="text-center">
+                                {% if g.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Archived</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'consolidation:group_detail' g.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-sliders me-1"></i> Configure
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No consolidation groups registered yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

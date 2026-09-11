@@ -1,0 +1,101 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">{{ statement.get_statement_type_display }}</h1>
+                <span class="badge bg-success">{{ statement.status }}</span>
+            </div>
+            <p class="text-muted mb-0">Statement #: <code>{{ statement.statement_number }}</code> | Period: {{ statement.period_start }} to {{ statement.period_end }} | Group: {{ statement.group.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'consolidation:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print me-1"></i> Print / Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Parent Holding ({{ statement.reporting_currency }})</span>
+                    <h4 class="fw-bold mt-1 mb-0 text-dark">${{ statement.gross_total_parent }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Subsidiaries Translated</span>
+                    <h4 class="fw-bold mt-1 mb-0 text-primary">${{ statement.gross_total_subsidiaries }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Intercompany Eliminations</span>
+                    <h4 class="fw-bold mt-1 mb-0 text-danger">-${{ statement.total_eliminations }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 h-100 bg-primary text-white">
+                <div class="card-body">
+                    <span class="text-white-50 small fw-semibold">Net Consolidated Total</span>
+                    <h3 class="fw-bold mt-1 mb-0">${{ statement.net_consolidated_total }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consolidated Matrix Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-table-cells me-2 text-primary"></i>Consolidated Financial Statement Matrix</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 font-monospace small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Account Code</th>
+                            <th>Account Name</th>
+                            <th>Type</th>
+                            <th class="text-end">Parent Entity</th>
+                            <th class="text-end">Subsidiaries</th>
+                            <th class="text-end text-danger">Eliminations</th>
+                            <th class="text-end text-success fw-bold">Consolidated ({{ statement.reporting_currency }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in line_items %}
+                        <tr>
+                            <td class="fw-bold text-dark">{{ item.account_code }}</td>
+                            <td class="text-dark">{{ item.account_name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ item.account_type }}</span></td>
+                            <td class="text-end">${{ item.parent_balance }}</td>
+                            <td class="text-end">${{ item.subsidiaries_balance }}</td>
+                            <td class="text-end text-danger">-${{ item.eliminations }}</td>
+                            <td class="text-end text-success fw-bold">${{ item.consolidated_balance }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No line items in statement matrix.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

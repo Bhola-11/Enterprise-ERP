@@ -1,0 +1,92 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Foreign exchange rates used for IAS 21 currency translations and consolidation adjustments.</p>
+        </div>
+        <a href="{% url 'consolidation:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Effective Date</th>
+                                    <th>Currency Pair</th>
+                                    <th class="text-end">Spot Rate</th>
+                                    <th class="text-end">Average Monthly Rate</th>
+                                    <th class="text-end">Closing Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in rates %}
+                                <tr>
+                                    <td>{{ r.effective_date|date:"Y-m-d" }}</td>
+                                    <td class="fw-bold text-primary">{{ r.from_currency }} / {{ r.to_currency }}</td>
+                                    <td class="text-end fw-bold">{{ r.spot_rate }}</td>
+                                    <td class="text-end text-muted">{{ r.average_monthly_rate }}</td>
+                                    <td class="text-end text-success fw-bold">{{ r.closing_rate }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No exchange rates recorded.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-plus-circle me-2 text-primary"></i>Record Exchange Rate</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">From Currency *</label>
+                            {{ form.from_currency }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">To Currency *</label>
+                            {{ form.to_currency }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Effective Date *</label>
+                            {{ form.effective_date }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Spot Exchange Rate *</label>
+                            {{ form.spot_rate }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Average Monthly Rate *</label>
+                            {{ form.average_monthly_rate }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Closing Balance Sheet Rate *</label>
+                            {{ form.closing_rate }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-save me-1"></i> Save Rate
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
