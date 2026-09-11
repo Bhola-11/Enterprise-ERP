@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-calendar-check me-2 text-primary"></i>Master Production Schedule (MPS)</h1>
+            <p class="text-muted mb-0">Top-level finished goods production schedule driven by sales forecasts and confirmed orders.</p>
+        </div>
+        <a href="{% url 'mrp_planning:mps_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New MPS Schedule</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Finished Product</th>
+                            <th>Period Start</th>
+                            <th>Period End</th>
+                            <th>Forecast Demand</th>
+                            <th>Confirmed SO</th>
+                            <th>Planned Production</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in schedules %}
+                        <tr>
+                            <td class="fw-bold">{{ s.product.name }} ({{ s.product.sku }})</td>
+                            <td>{{ s.period_start|date:"d M Y" }}</td>
+                            <td>{{ s.period_end|date:"d M Y" }}</td>
+                            <td>{{ s.forecast_demand_qty }}</td>
+                            <td>{{ s.confirmed_so_qty }}</td>
+                            <td class="fw-bold text-primary">{{ s.planned_production_qty }} Units</td>
+                            <td><span class="badge bg-success">{{ s.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No MPS schedules configured.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

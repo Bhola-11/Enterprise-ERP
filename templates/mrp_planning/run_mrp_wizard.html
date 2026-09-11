@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-cpu me-2 text-primary"></i>Execute MRP II Engine</h1>
+            <p class="text-muted mb-0">Compute multi-level BOM explosion and gross-to-net demand calculations.</p>
+        </div>
+        <a href="{% url 'mrp_planning:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to MRP</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-sliders me-1"></i>MRP Parameters & Scope</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Planning Horizon (Days)</label>
+                            {{ form.planning_horizon_days }}
+                            <small class="text-muted">How many days forward to project demand and scheduled receipts (Default 90 days).</small>
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.include_forecast }}
+                            <label class="form-check-label fw-bold" for="{{ form.include_forecast.id_for_label }}">
+                                Include Statistical Sales Forecast Demand
+                            </label>
+                        </div>
+                        <div class="form-check mb-4">
+                            {{ form.include_safety_stock }}
+                            <label class="form-check-label fw-bold" for="{{ form.include_safety_stock.id_for_label }}">
+                                Enforce Minimum Safety Stock Thresholds
+                            </label>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'mrp_planning:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-success px-4"><i class="bi bi-play-fill me-1"></i>Run Material Requirements Calculation</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-diagram-3 me-2 text-primary"></i>Material Requirements Planning (MRP II) Hub</h1>
+            <p class="text-muted mb-0">Master Production Schedules (MPS), Multi-Level BOM Explosion & Netting Algorithms.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'mrp_planning:mps_list' %}" class="btn btn-outline-secondary"><i class="bi bi-calendar-check me-1"></i>MPS Planner</a>
+            <a href="{% url 'mrp_planning:run_mrp_wizard' %}" class="btn btn-primary shadow-sm"><i class="bi bi-play-circle me-1"></i>Execute MRP Run</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active MPS Schedules</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ total_mps }} Production Plans</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">MRP Calculations</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ active_mrp_runs }} Executed Runs</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-warning border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Planned Orders Pending</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ total_planned_orders }} Requisitions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-info border-4 shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Safety Stock Rules</div>
+                    <div class="h4 mb-0 font-weight-bold text-gray-800">{{ safety_stock_alerts }} Active Items</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-clock-history me-1"></i>Recent MRP II Runs</h6>
+            <a href="{% url 'mrp_planning:run_mrp_wizard' %}" class="btn btn-sm btn-outline-primary">Run MRP</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Run #</th>
+                            <th>Date</th>
+                            <th>Planning Horizon</th>
+                            <th>Orders Recommended</th>
+                            <th>Status</th>
+                            <th>Executed By</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent_runs %}
+                        <tr>
+                            <td><a href="{% url 'mrp_planning:mrp_run_detail' r.id %}" class="fw-bold">{{ r.run_number }}</a></td>
+                            <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ r.planning_horizon_days }} Days</td>
+                            <td><span class="badge bg-primary fs-6">{{ r.total_planned_orders_count }} Orders</span></td>
+                            <td><span class="badge bg-success">{{ r.get_status_display }}</span></td>
+                            <td>{{ r.executed_by.username|default:"System Engine" }}</td>
+                            <td><a href="{% url 'mrp_planning:mrp_run_detail' r.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View Orders</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center py-4 text-muted">No MRP runs executed yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

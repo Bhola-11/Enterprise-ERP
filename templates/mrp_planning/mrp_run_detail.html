@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0 text-gray-800">MRP Run: {{ run.run_number }}</h1>
+                <span class="badge bg-success fs-6">{{ run.get_status_display }}</span>
+            </div>
+            <p class="text-muted mb-0">Planning Horizon: <strong>{{ run.planning_horizon_days }} Days</strong> | Generated: <strong>{{ run.created_at|date:"d M Y H:i" }}</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'mrp_planning:run_mrp_wizard' %}" class="btn btn-primary"><i class="bi bi-play-circle me-1"></i>New Calculation</a>
+            <a href="{% url 'mrp_planning:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-list-check me-1"></i>Planned Order Recommendations ({{ requirements.count }})</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product / Component</th>
+                            <th>Action</th>
+                            <th>Gross Req</th>
+                            <th>On-Hand</th>
+                            <th>Net Req</th>
+                            <th>Planned Order Qty</th>
+                            <th>Lead Time</th>
+                            <th>Release Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requirements %}
+                        <tr>
+                            <td>
+                                <strong>{{ req.product.name }}</strong>
+                                <div class="small text-muted">{{ req.product.sku }}</div>
+                            </td>
+                            <td>
+                                <span class="badge {% if req.order_action == 'PURCHASE_ORDER' %}bg-primary{% elif req.order_action == 'PRODUCTION_ORDER' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ req.get_order_action_display }}
+                                </span>
+                            </td>
+                            <td>{{ req.gross_requirement }}</td>
+                            <td>{{ req.current_on_hand }}</td>
+                            <td class="fw-bold text-danger">{{ req.net_requirement }}</td>
+                            <td class="fw-bold text-success">{{ req.planned_order_qty }} Units</td>
+                            <td>{{ req.lead_time_days }} Days</td>
+                            <td><strong>{{ req.order_release_date|date:"d M Y" }}</strong></td>
+                            <td><span class="badge bg-info">{{ req.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="text-center py-4 text-muted">No material replenishment required. Inventory is balanced.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

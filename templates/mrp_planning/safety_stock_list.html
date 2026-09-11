@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }} | Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-shield-check me-2 text-primary"></i>Safety Stock & Reorder Rules</h1>
+            <p class="text-muted mb-0">Economic Order Quantity (EOQ), buffer stocks and lead-time safety buffers.</p>
+        </div>
+        <a href="{% url 'mrp_planning:safety_stock_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add Safety Rule</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product SKU</th>
+                            <th>Product Name</th>
+                            <th>Warehouse</th>
+                            <th>Min Safety Stock</th>
+                            <th>Reorder Point (ROP)</th>
+                            <th>EOQ Order Size</th>
+                            <th>Lead Time</th>
+                            <th>Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rules %}
+                        <tr>
+                            <td><span class="badge bg-dark">{{ r.product.sku }}</span></td>
+                            <td class="fw-bold">{{ r.product.name }}</td>
+                            <td>{{ r.warehouse.name }}</td>
+                            <td class="text-danger fw-bold">{{ r.min_safety_stock }}</td>
+                            <td class="text-warning fw-bold">{{ r.reorder_point }}</td>
+                            <td class="text-success fw-bold">{{ r.economic_order_quantity }}</td>
+                            <td>{{ r.lead_time_days }} Days</td>
+                            <td>{% if r.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No safety stock rules defined yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
