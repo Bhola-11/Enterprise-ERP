@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Close Shift & Reconcile - Session {{ session.session_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold"><i class="fa-solid fa-lock me-2"></i>Close Shift & Cash Reconciliation</h5>
+                        <small class="text-white-50">Terminal: {{ session.terminal.name }}</small>
+                    </div>
+                    <span class="badge bg-white text-danger font-monospace">{{ session.session_number }}</span>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Shift Summary Overview -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-xs text-muted fw-bold">TOTAL SALES</div>
+                                <div class="h5 fw-bold text-success mb-0">${{ session.total_sales_amount|floatformat:2|intcomma }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-xs text-muted fw-bold">ORDERS COUNT</div>
+                                <div class="h5 fw-bold text-primary mb-0">{{ session.total_orders_count }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-xs text-muted fw-bold">OPENING FLOAT</div>
+                                <div class="h5 fw-bold text-muted mb-0">${{ session.opening_cash|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <div class="text-xs text-muted fw-bold">EXPECTED CASH</div>
+                                <div class="h5 fw-bold text-dark font-monospace mb-0">${{ session.expected_cash|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Tender Breakdown -->
+                    <div class="card bg-light border-0 mb-4 p-3">
+                        <h6 class="fw-bold mb-2"><i class="fa-solid fa-receipt me-1"></i> Shift Tender Collections</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-borderless mb-0 text-xs">
+                                <tbody>
+                                    {% for method, amt in z_data.payment_breakdown.items %}
+                                    <tr>
+                                        <td class="fw-medium">{{ method }}</td>
+                                        <td class="text-end font-monospace fw-bold">${{ amt|floatformat:2 }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-muted text-center">No completed sales payments recorded in this shift.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Counted Drawer Cash in Hand ($)</label>
+                            {{ form.counted_cash }}
+                            <div class="form-text">Perform physical cash count in drawer and enter total.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Closing Notes / Discrepancy Explanation</label>
+                            {{ form.closing_notes }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg fw-bold">
+                                <i class="fa-solid fa-file-contract me-2"></i> Finalize Shift & Generate Z-Report
+                            </button>
+                            <a href="{% url 'pos:register' session_id=session.id %}" class="btn btn-outline-secondary">
+                                Back to Register
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

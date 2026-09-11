@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Receipt - {{ order.order_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printableSlip, #printableSlip * {
+            visibility: visible;
+        }
+        #printableSlip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80mm;
+            padding: 0;
+            margin: 0;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="fa-solid fa-receipt text-primary me-2"></i>Receipt View</h4>
+            <span class="text-muted font-monospace">{{ order.order_number }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fa-solid fa-print me-1"></i> Print Thermal Receipt (80mm)
+            </button>
+            <a href="{% url 'pos:order_history' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to History
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <!-- Thermal Receipt Card -->
+            <div class="card shadow-sm border p-4 bg-white" id="printableSlip" style="max-width: 400px; margin: 0 auto; font-family: 'Courier New', Courier, monospace; font-size: 13px;">
+                <div class="text-center mb-3">
+                    <h5 class="fw-bold mb-1">NEXORA ENTERPRISE</h5>
+                    <div class="text-xs text-muted">{{ order.terminal.branch.name }}</div>
+                    <div class="text-xs text-muted">{{ order.terminal.receipt_header }}</div>
+                </div>
+
+                <div class="border-top border-bottom border-dark py-2 mb-2 text-xs">
+                    <div class="d-flex justify-content-between">
+                        <span>Rcpt: {{ order.order_number|slice:"-8:" }}</span>
+                        <span>{{ order.created_at|date:"d/m/y H:i" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Term: {{ order.terminal.terminal_code }}</span>
+                        <span>Cashier: {{ order.cashier.username }}</span>
+                    </div>
+                    <div>Cust: {{ order.customer.name|default:"Walk-In" }}</div>
+                </div>
+
+                <table class="w-100 mb-2" style="font-size: 12px;">
+                    <thead>
+                        <tr class="border-bottom">
+                            <th class="text-start">ITEM</th>
+                            <th class="text-center">QTY</th>
+                            <th class="text-end">PRICE</th>
+                            <th class="text-end">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td class="text-start text-truncate" style="max-width: 130px;">{{ item.product_name }}</td>
+                            <td class="text-center">{{ item.quantity|floatformat:"-2" }}</td>
+                            <td class="text-end">{{ item.unit_price|floatformat:2 }}</td>
+                            <td class="text-end">{{ item.line_total|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="border-top border-dark pt-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span>${{ order.subtotal|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Tax:</span>
+                        <span>${{ order.tax_amount|floatformat:2 }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between">
+                        <span>Discount:</span>
+                        <span>-${{ order.discount_amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between fw-bold fs-6 border-top border-bottom border-dark py-1 my-1">
+                        <span>GRAND TOTAL:</span>
+                        <span>${{ order.grand_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-bold text-xs mb-1">TENDERS:</div>
+                    {% for p in order.payments.all %}
+                    <div class="d-flex justify-content-between text-xs">
+                        <span>{{ p.get_payment_method_display }}:</span>
+                        <span>${{ p.amount|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between text-xs fw-bold">
+                        <span>Change Returned:</span>
+                        <span>${{ order.change_returned|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {% if order.loyalty_points_earned %}
+                <div class="text-center bg-light p-2 rounded mb-2 text-xs">
+                    Loyalty Points Earned: <strong>+{{ order.loyalty_points_earned }} pts</strong>
+                </div>
+                {% endif %}
+
+                <div class="text-center border-top border-dark pt-2 text-xs text-muted">
+                    {{ order.terminal.receipt_footer }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

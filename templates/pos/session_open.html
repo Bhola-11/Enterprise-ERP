@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Open Shift - {{ terminal.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-key me-2"></i>Open Shift Register</h5>
+                    <small class="text-white-50">{{ terminal.name }} ({{ terminal.terminal_code }})</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info py-2 d-flex align-items-center">
+                        <i class="fa-solid fa-user me-2 fa-lg"></i>
+                        <div>
+                            Cashier: <strong>{{ request.user.get_full_name|default:request.user.username }}</strong><br>
+                            Branch: <strong>{{ terminal.branch.name }}</strong>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Opening Cash Float ($)</label>
+                            {{ form.opening_cash }}
+                            <div class="form-text">Count the starting drawer cash before opening register.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Opening Notes / Denominations</label>
+                            {{ form.opening_notes }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-circle-play me-2"></i> Start Cashier Shift
+                            </button>
+                            <a href="{% url 'pos:terminal_list' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

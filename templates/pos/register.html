@@ -1,0 +1,685 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Cashier Register - {{ terminal.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pos-screen {
+        height: calc(100vh - 85px);
+        overflow: hidden;
+    }
+    .product-grid {
+        height: calc(100vh - 210px);
+        overflow-y: auto;
+    }
+    .product-card {
+        cursor: pointer;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .cart-table-wrapper {
+        height: calc(100vh - 380px);
+        overflow-y: auto;
+    }
+    .tender-btn {
+        height: 60px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2 pos-screen">
+    <!-- Top Bar -->
+    <div class="row bg-white rounded shadow-sm py-2 px-3 mb-2 align-items-center">
+        <div class="col-md-4 d-flex align-items-center">
+            <span class="badge bg-success me-2"><i class="fa-solid fa-circle me-1"></i> ONLINE</span>
+            <strong class="text-primary fs-5">{{ terminal.name }}</strong>
+            <span class="text-muted ms-2 font-monospace">({{ terminal.terminal_code }})</span>
+        </div>
+        <div class="col-md-4 text-center">
+            <span class="text-muted">Cashier: </span>
+            <strong>{{ session.cashier.get_full_name|default:session.cashier.username }}</strong>
+            <span class="mx-2">|</span>
+            <span class="text-muted">Shift Sales: </span>
+            <strong class="text-success" id="shiftSalesDisplay">${{ session.total_sales_amount|floatformat:2|intcomma }}</strong>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'pos:cash_move' session_id=session.id %}" class="btn btn-sm btn-outline-secondary me-1">
+                <i class="fa-solid fa-money-bill-transfer"></i> Cash In/Out
+            </a>
+            <a href="{% url 'pos:session_close' session_id=session.id %}" class="btn btn-sm btn-danger">
+                <i class="fa-solid fa-lock me-1"></i> Close Shift
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Workspace (2-Column: Left Products Catalog, Right Active Cart & Checkout) -->
+    <div class="row g-2">
+        <!-- Left Column: Products & Search -->
+        <div class="col-lg-7 d-flex flex-column">
+            <div class="card shadow-sm border-0 mb-2 p-2">
+                <div class="row g-2">
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-barcode text-primary"></i></span>
+                            <input type="text" id="barcodeInput" class="form-control" placeholder="Scan Barcode or Search Product Name / SKU..." autofocus autocomplete="off">
+                            <button class="btn btn-primary" id="searchBtn" type="button"><i class="fa-solid fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories ({{ categories|length }})</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="card shadow-sm border-0 flex-grow-1 p-2">
+                <div class="row g-2 product-grid" id="productGrid">
+                    {% for prod in products %}
+                    <div class="col-6 col-md-4 col-xl-3 product-item" 
+                         data-id="{{ prod.id }}" 
+                         data-name="{{ prod.name }}" 
+                         data-price="{{ prod.selling_price|default:prod.cost_price|default:'0.00' }}" 
+                         data-stock="{{ prod.current_stock|default:'0' }}"
+                         data-tax="{{ prod.tax_rate|default:'0' }}"
+                         data-barcode="{{ prod.barcode|default:'' }}">
+                        <div class="card h-100 border product-card p-2 text-center">
+                            <div class="bg-light rounded py-3 mb-1">
+                                <i class="fa-solid fa-box-open fa-2x text-secondary"></i>
+                            </div>
+                            <div class="fw-bold text-truncate text-xs mb-1" title="{{ prod.name }}">{{ prod.name }}</div>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="badge bg-info text-white font-monospace">${{ prod.selling_price|default:prod.cost_price|default:'0.00' }}</span>
+                                <small class="text-muted">Stock: {{ prod.current_stock|default:'0'|floatformat:0 }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fa-solid fa-box-archive fa-3x mb-2"></i>
+                        <p>No active products found. Add products in Inventory module.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Cart, Customer, Discounts & Tenders -->
+        <div class="col-lg-5 d-flex flex-column">
+            <div class="card shadow-sm border-0 h-100 d-flex flex-column">
+                <!-- Customer Selection Bar -->
+                <div class="card-header bg-white py-2 border-bottom">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-8">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="fa-solid fa-user text-primary"></i></span>
+                                <select class="form-select form-select-sm" id="customerSelect">
+                                    <option value="">Walk-In Retail Customer</option>
+                                    {% for cust in customers %}
+                                        <option value="{{ cust.id }}">{{ cust.name }} ({{ cust.phone|default:cust.email }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <div id="loyaltyBadge" class="d-none">
+                                <span class="badge bg-warning text-dark" id="loyaltyTierDisplay">Bronze</span>
+                                <span class="badge bg-dark font-monospace" id="loyaltyPtsDisplay">0 pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shopping Basket Table -->
+                <div class="card-body p-0 flex-grow-1">
+                    <div class="cart-table-wrapper">
+                        <table class="table table-hover table-sm align-middle mb-0" id="cartTable">
+                            <thead class="table-light sticky-top">
+                                <tr class="text-xs">
+                                    <th style="width: 45%;">Item</th>
+                                    <th style="width: 20%;" class="text-center">Qty</th>
+                                    <th style="width: 20%;" class="text-end">Price</th>
+                                    <th style="width: 15%;" class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartItemsBody">
+                                <!-- Cart Items rendered dynamically by JS -->
+                                <tr id="emptyCartRow">
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-cart-shopping fa-2x mb-2 text-black-50"></i>
+                                        <p class="mb-0">Cart is empty. Scan barcode or click items.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary & Calculations Footer -->
+                <div class="card-footer bg-white border-top p-3">
+                    <!-- Coupon & Loyalty Code Row -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-7">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="couponInput" class="form-control" placeholder="Promo / Coupon Code">
+                                <button class="btn btn-outline-primary" id="applyCouponBtn" type="button">Apply</button>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="input-group input-group-sm" id="redeemLoyaltyGroup">
+                                <input type="number" id="redeemPtsInput" class="form-control" placeholder="Pts" min="0">
+                                <button class="btn btn-outline-warning" id="redeemPtsBtn" type="button">Redeem</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totals Breakdown -->
+                    <div class="bg-light p-2 rounded mb-3">
+                        <div class="d-flex justify-content-between text-xs py-1">
+                            <span class="text-muted">Subtotal:</span>
+                            <span class="fw-semibold font-monospace" id="subtotalDisplay">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-xs py-1">
+                            <span class="text-muted">Tax:</span>
+                            <span class="fw-semibold font-monospace" id="taxDisplay">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-xs py-1 text-danger">
+                            <span>Discount / Coupon:</span>
+                            <span class="fw-semibold font-monospace" id="discountDisplay">-$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                            <span class="h5 fw-bold mb-0">TOTAL DUE:</span>
+                            <span class="h4 fw-bold text-primary font-monospace mb-0" id="grandTotalDisplay">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Tender Trigger Buttons -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg fw-bold tender-btn shadow-sm" id="payModalBtn" disabled>
+                            <i class="fa-solid fa-money-check-dollar me-2"></i> PAY & CHECKOUT (<span id="btnTotalDisplay">$0.00</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Multi-Tender Split Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-cash-register me-2"></i>Select Payment Tender</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6 border-end">
+                        <h6 class="text-muted text-uppercase fw-bold text-xs mb-3">Order Summary</h6>
+                        <div class="display-6 fw-bold text-primary font-monospace mb-2" id="modalTotalDue">$0.00</div>
+                        <p class="text-muted mb-4">Total items: <span id="modalItemCount">0</span></p>
+
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-bold text-muted">PAYMENT METHOD</label>
+                            <select class="form-select form-select-lg fw-bold" id="paymentMethodSelect">
+                                <option value="CASH">💵 Cash Tender</option>
+                                <option value="CREDIT_CARD">💳 Credit / Debit Card</option>
+                                <option value="UPI_QR">📱 UPI / Instant QR Code</option>
+                                <option value="WALLET">📲 Digital Wallet (ApplePay/GPay)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-bold text-muted">AMOUNT TENDERED</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" id="tenderAmountInput" class="form-control font-monospace fw-bold text-end" value="0.00">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                            <span class="fw-bold">CHANGE TO RETURN:</span>
+                            <span class="h4 mb-0 fw-bold text-success font-monospace" id="modalChangeDue">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 d-flex flex-column justify-content-between">
+                        <div>
+                            <h6 class="text-muted text-uppercase fw-bold text-xs mb-3">Quick Cash Presets</h6>
+                            <div class="row g-2 mb-3">
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="exact">Exact</button></div>
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="10">$10</button></div>
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="20">$20</button></div>
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="50">$50</button></div>
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="100">$100</button></div>
+                                <div class="col-4"><button class="btn btn-outline-secondary w-100 py-2 quick-cash" data-val="200">$200</button></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-xs fw-bold text-muted">Card / Txn Reference (Optional)</label>
+                                <input type="text" id="txnRefInput" class="form-control" placeholder="Auth code or Card last 4 digits">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-xs fw-bold text-muted">Order Notes</label>
+                                <input type="text" id="orderNotesInput" class="form-control" placeholder="Optional cashier note">
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success btn-lg fw-bold py-3" id="confirmCheckoutBtn">
+                                <i class="fa-solid fa-circle-check me-2"></i> COMPLETE TRANSACTION
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-receipt me-2"></i>Transaction Completed!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="text-success mb-3">
+                    <i class="fa-solid fa-circle-check fa-4x"></i>
+                </div>
+                <h4 class="fw-bold mb-1" id="receiptOrderNum">POS-ORD-0001</h4>
+                <p class="text-muted mb-3">Order successfully placed and inventory deducted.</p>
+
+                <div class="bg-light p-3 rounded text-start font-monospace text-xs mb-3" style="max-height: 260px; overflow-y: auto; white-space: pre-wrap;" id="receiptPreviewBox">
+                    Loading printable receipt...
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="#" id="viewReceiptLink" target="_blank" class="btn btn-outline-primary flex-grow-1">
+                        <i class="fa-solid fa-print me-1"></i> Print Receipt
+                    </a>
+                    <button type="button" class="btn btn-success flex-grow-1" data-bs-dismiss="modal" id="newSaleBtn">
+                        <i class="fa-solid fa-plus me-1"></i> Next Sale
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sessionId = {{ session.id }};
+    let cart = [];
+    let appliedCoupon = null;
+    let couponDiscountAmount = 0.0;
+    let loyaltyDiscountAmount = 0.0;
+    let currentGrandTotal = 0.0;
+
+    const barcodeInput = document.getElementById('barcodeInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productGrid = document.getElementById('productGrid');
+    const cartItemsBody = document.getElementById('cartItemsBody');
+    const emptyCartRow = document.getElementById('emptyCartRow');
+    const subtotalDisplay = document.getElementById('subtotalDisplay');
+    const taxDisplay = document.getElementById('taxDisplay');
+    const discountDisplay = document.getElementById('discountDisplay');
+    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+    const btnTotalDisplay = document.getElementById('btnTotalDisplay');
+    const payModalBtn = document.getElementById('payModalBtn');
+    const customerSelect = document.getElementById('customerSelect');
+    const loyaltyBadge = document.getElementById('loyaltyBadge');
+    const loyaltyTierDisplay = document.getElementById('loyaltyTierDisplay');
+    const loyaltyPtsDisplay = document.getElementById('loyaltyPtsDisplay');
+    const couponInput = document.getElementById('couponInput');
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+
+    // Payment Modal Elements
+    const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    const receiptModal = new bootstrap.Modal(document.getElementById('receiptModal'));
+    const modalTotalDue = document.getElementById('modalTotalDue');
+    const modalItemCount = document.getElementById('modalItemCount');
+    const tenderAmountInput = document.getElementById('tenderAmountInput');
+    const modalChangeDue = document.getElementById('modalChangeDue');
+    const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+    const confirmCheckoutBtn = document.getElementById('confirmCheckoutBtn');
+    const quickCashBtns = document.querySelectorAll('.quick-cash');
+
+    // 1. Add Product Card Click Handler
+    function attachProductCardEvents() {
+        document.querySelectorAll('.product-item').forEach(card => {
+            card.onclick = function() {
+                const id = parseInt(this.getAttribute('data-id'));
+                const name = this.getAttribute('data-name');
+                const price = parseFloat(this.getAttribute('data-price')) || 0.0;
+                const tax = parseFloat(this.getAttribute('data-tax')) || 0.0;
+                addToCart(id, name, price, tax);
+            };
+        });
+    }
+    attachProductCardEvents();
+
+    // 2. Barcode Search Listener (Enter key trigger)
+    barcodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = barcodeInput.value.trim();
+            if (!query) return;
+
+            fetch(`/pos/api/products/search/?q=${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.products && data.products.length > 0) {
+                        const p = data.products[0];
+                        addToCart(p.id, p.name, p.price, p.tax_rate);
+                        barcodeInput.value = '';
+                    } else {
+                        alert('Product not found: ' + query);
+                    }
+                });
+        }
+    });
+
+    // 3. Category Filter
+    categoryFilter.addEventListener('change', function() {
+        const catId = this.value;
+        fetch(`/pos/api/products/search/?category_id=${catId}`)
+            .then(r => r.json())
+            .then(data => {
+                let html = '';
+                if (data.products && data.products.length > 0) {
+                    data.products.forEach(p => {
+                        html += `
+                        <div class="col-6 col-md-4 col-xl-3 product-item" 
+                             data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" 
+                             data-stock="${p.stock}" data-tax="${p.tax_rate}">
+                            <div class="card h-100 border product-card p-2 text-center">
+                                <div class="bg-light rounded py-3 mb-1">
+                                    <i class="fa-solid fa-box-open fa-2x text-secondary"></i>
+                                </div>
+                                <div class="fw-bold text-truncate text-xs mb-1">${p.name}</div>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="badge bg-info text-white font-monospace">$${p.price.toFixed(2)}</span>
+                                    <small class="text-muted">Stock: ${p.stock}</small>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html = '<div class="col-12 text-center py-5 text-muted"><p>No products in this category.</p></div>';
+                }
+                productGrid.innerHTML = html;
+                attachProductCardEvents();
+            });
+    });
+
+    // 4. Cart Operations
+    function addToCart(id, name, price, taxRate) {
+        const existing = cart.find(item => item.id === id);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            cart.push({
+                id: id,
+                name: name,
+                unit_price: price,
+                qty: 1,
+                tax_rate: taxRate,
+                discount_pct: 0.0
+            });
+        }
+        renderCart();
+    }
+
+    window.updateQty = function(id, delta) {
+        const item = cart.find(i => i.id === id);
+        if (item) {
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            renderCart();
+        }
+    };
+
+    window.removeItem = function(id) {
+        cart = cart.filter(i => i.id !== id);
+        renderCart();
+    };
+
+    function renderCart() {
+        if (cart.length === 0) {
+            cartItemsBody.innerHTML = `
+                <tr id="emptyCartRow">
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-cart-shopping fa-2x mb-2 text-black-50"></i>
+                        <p class="mb-0">Cart is empty. Scan barcode or click items.</p>
+                    </td>
+                </tr>`;
+            subtotalDisplay.innerText = '$0.00';
+            taxDisplay.innerText = '$0.00';
+            discountDisplay.innerText = '-$0.00';
+            grandTotalDisplay.innerText = '$0.00';
+            btnTotalDisplay.innerText = '$0.00';
+            payModalBtn.disabled = true;
+            return;
+        }
+
+        let subtotal = 0.0;
+        let totalTax = 0.0;
+        let rowsHtml = '';
+
+        cart.forEach(item => {
+            const lineSub = item.unit_price * item.qty;
+            const lineTax = lineSub * (item.tax_rate / 100.0);
+            const lineTotal = lineSub + lineTax;
+
+            subtotal += lineSub;
+            totalTax += lineTax;
+
+            rowsHtml += `
+            <tr class="text-xs">
+                <td>
+                    <div class="fw-bold text-truncate" style="max-width: 140px;">${item.name}</div>
+                    <small class="text-muted font-monospace">$${item.unit_price.toFixed(2)} each</small>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary px-2 py-0" onclick="updateQty(${item.id}, -1)">-</button>
+                        <span class="btn btn-light px-2 py-0 fw-bold font-monospace">${item.qty}</span>
+                        <button class="btn btn-outline-secondary px-2 py-0" onclick="updateQty(${item.id}, 1)">+</button>
+                    </div>
+                </td>
+                <td class="text-end font-monospace fw-bold">$${lineTotal.toFixed(2)}</td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm p-1" onclick="removeItem(${item.id})">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        cartItemsBody.innerHTML = rowsHtml;
+
+        const totalDiscount = couponDiscountAmount + loyaltyDiscountAmount;
+        currentGrandTotal = Math.max(0.0, (subtotal - totalDiscount) + totalTax);
+
+        subtotalDisplay.innerText = `$${subtotal.toFixed(2)}`;
+        taxDisplay.innerText = `$${totalTax.toFixed(2)}`;
+        discountDisplay.innerText = `-$${totalDiscount.toFixed(2)}`;
+        grandTotalDisplay.innerText = `$${currentGrandTotal.toFixed(2)}`;
+        btnTotalDisplay.innerText = `$${currentGrandTotal.toFixed(2)}`;
+        payModalBtn.disabled = false;
+    }
+
+    // 5. Customer Loyalty Selection
+    customerSelect.addEventListener('change', function() {
+        const custId = this.value;
+        if (!custId) {
+            loyaltyBadge.classList.add('d-none');
+            loyaltyDiscountAmount = 0.0;
+            renderCart();
+            return;
+        }
+
+        fetch(`/pos/api/customer/${custId}/loyalty/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loyaltyBadge.classList.remove('d-none');
+                    loyaltyTierDisplay.innerText = data.tier;
+                    loyaltyPtsDisplay.innerText = `${data.points_balance} pts ($${data.points_value.toFixed(2)})`;
+                }
+            });
+    });
+
+    // 6. Coupon Application
+    applyCouponBtn.addEventListener('click', function() {
+        const code = couponInput.value.trim();
+        if (!code) return;
+
+        let subtotal = 0.0;
+        cart.forEach(i => subtotal += (i.unit_price * i.qty));
+
+        fetch(`/pos/api/coupon/validate/?code=${encodeURIComponent(code)}&subtotal=${subtotal}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.valid) {
+                    appliedCoupon = code;
+                    couponDiscountAmount = data.discount;
+                    alert(data.message);
+                } else {
+                    appliedCoupon = null;
+                    couponDiscountAmount = 0.0;
+                    alert(data.message);
+                }
+                renderCart();
+            });
+    });
+
+    // 7. Payment Modal Handling
+    payModalBtn.addEventListener('click', function() {
+        modalTotalDue.innerText = `$${currentGrandTotal.toFixed(2)}`;
+        modalItemCount.innerText = cart.reduce((acc, itm) => acc + itm.qty, 0);
+        tenderAmountInput.value = currentGrandTotal.toFixed(2);
+        calculateChange();
+        paymentModal.show();
+    });
+
+    function calculateChange() {
+        const tendered = parseFloat(tenderAmountInput.value) || 0.0;
+        const change = Math.max(0.0, tendered - currentGrandTotal);
+        modalChangeDue.innerText = `$${change.toFixed(2)}`;
+    }
+
+    tenderAmountInput.addEventListener('input', calculateChange);
+
+    quickCashBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const val = this.getAttribute('data-val');
+            if (val === 'exact') {
+                tenderAmountInput.value = currentGrandTotal.toFixed(2);
+            } else {
+                tenderAmountInput.value = parseFloat(val).toFixed(2);
+            }
+            calculateChange();
+        });
+    });
+
+    // 8. Confirm Checkout & Post Order
+    confirmCheckoutBtn.addEventListener('click', function() {
+        const tendered = parseFloat(tenderAmountInput.value) || 0.0;
+        if (tendered < currentGrandTotal) {
+            alert(`Tendered amount ($${tendered.toFixed(2)}) is less than total due ($${currentGrandTotal.toFixed(2)}).`);
+            return;
+        }
+
+        const itemsPayload = cart.map(i => ({
+            product_id: i.id,
+            quantity: i.qty,
+            unit_price: i.unit_price,
+            discount_percentage: i.discount_pct,
+            tax_rate: i.tax_rate
+        }));
+
+        const paymentsPayload = [{
+            payment_method: paymentMethodSelect.value,
+            amount: tendered,
+            reference_number: document.getElementById('txnRefInput').value.trim()
+        }];
+
+        const payload = {
+            session_id: sessionId,
+            customer_id: customerSelect.value ? parseInt(customerSelect.value) : null,
+            coupon_code: appliedCoupon,
+            loyalty_points: 0,
+            notes: document.getElementById('orderNotesInput').value.trim(),
+            items: itemsPayload,
+            payments: paymentsPayload
+        };
+
+        confirmCheckoutBtn.disabled = true;
+        confirmCheckoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...';
+
+        fetch('/pos/api/order/checkout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+            confirmCheckoutBtn.disabled = false;
+            confirmCheckoutBtn.innerHTML = '<i class="fa-solid fa-circle-check me-2"></i> COMPLETE TRANSACTION';
+
+            if (data.success) {
+                paymentModal.hide();
+
+                // Show Receipt Modal
+                document.getElementById('receiptOrderNum').innerText = data.order_number;
+                document.getElementById('viewReceiptLink').href = data.receipt_url;
+
+                fetch(data.receipt_url + '?format=raw')
+                    .then(res => res.text())
+                    .then(txt => {
+                        document.getElementById('receiptPreviewBox').innerText = txt;
+                    });
+
+                receiptModal.show();
+
+                // Reset Cart
+                cart = [];
+                appliedCoupon = null;
+                couponDiscountAmount = 0.0;
+                loyaltyDiscountAmount = 0.0;
+                renderCart();
+            } else {
+                alert('Checkout Error: ' + data.message);
+            }
+        })
+        .catch(err => {
+            confirmCheckoutBtn.disabled = false;
+            confirmCheckoutBtn.innerHTML = '<i class="fa-solid fa-circle-check me-2"></i> COMPLETE TRANSACTION';
+            alert('Checkout exception: ' + err);
+        });
+    });
+});
+</script>
+{% endblock %}

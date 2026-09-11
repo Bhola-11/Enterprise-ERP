@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}POS Terminals - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-gray-800"><i class="fa-solid fa-cash-register text-primary me-2"></i>Point of Sale & Retail Cashier</h1>
+            <p class="text-muted mb-0">Manage retail billing terminals, active cashier shifts, receipt generation, and real-time register sessions.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'pos:order_history' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> Sales History
+            </a>
+            <a href="{% url 'pos:terminal_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-1"></i> Add Terminal
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-primary text-uppercase mb-1">Total Terminals</div>
+                    <div class="h4 mb-0 fw-bold text-gray-800">{{ terminals|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-success text-uppercase mb-1">Active Shifts Open</div>
+                    <div class="h4 mb-0 fw-bold text-gray-800">
+                        {{ terminals|length }} Online
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-info text-uppercase mb-1">POS Engine</div>
+                    <div class="h4 mb-0 fw-bold text-gray-800">Online & Syncing</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="text-xs fw-bold text-warning text-uppercase mb-1">Barcode & Thermal</div>
+                    <div class="h4 mb-0 fw-bold text-gray-800">ESC/POS Ready</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminals Grid -->
+    <div class="row g-4">
+        {% for terminal in terminals %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3">
+                            <i class="fa-solid fa-cash-register fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ terminal.name }}</h5>
+                            <small class="text-muted font-monospace">{{ terminal.terminal_code }}</small>
+                        </div>
+                    </div>
+                    {% if terminal.active_session %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            <i class="fa-solid fa-circle-play me-1"></i> Shift Open
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                            <i class="fa-solid fa-circle-stop me-1"></i> Closed
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                        <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                            <span class="text-muted"><i class="fa-solid fa-building me-1"></i> Branch:</span>
+                            <span class="fw-medium">{{ terminal.branch.name }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                            <span class="text-muted"><i class="fa-solid fa-warehouse me-1"></i> Warehouse:</span>
+                            <span class="fw-medium">{{ terminal.warehouse.name|default:"Main Stock" }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-1 border-bottom border-light">
+                            <span class="text-muted"><i class="fa-solid fa-network-wired me-1"></i> IP Address:</span>
+                            <span class="font-monospace text-muted">{{ terminal.ip_address|default:"127.0.0.1" }}</span>
+                        </li>
+                    </ul>
+
+                    {% if terminal.active_session %}
+                        <div class="bg-light p-3 rounded mb-3">
+                            <div class="d-flex justify-content-between text-xs mb-1">
+                                <span class="text-muted">Cashier:</span>
+                                <strong>{{ terminal.active_session.cashier.get_full_name|default:terminal.active_session.cashier.username }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs mb-1">
+                                <span class="text-muted">Shift Sales:</span>
+                                <strong class="text-success">${{ terminal.active_session.total_sales_amount|floatformat:2|intcomma }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between text-xs">
+                                <span class="text-muted">Orders Count:</span>
+                                <strong>{{ terminal.active_session.total_orders_count }} orders</strong>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0 pb-3 d-flex gap-2">
+                    {% if terminal.active_session %}
+                        <a href="{% url 'pos:register' session_id=terminal.active_session.id %}" class="btn btn-success flex-grow-1">
+                            <i class="fa-solid fa-cash-register me-1"></i> Open Register
+                        </a>
+                        <a href="{% url 'pos:session_close' session_id=terminal.active_session.id %}" class="btn btn-outline-danger" title="Close Shift & Z-Report">
+                            <i class="fa-solid fa-lock"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'pos:session_open' terminal_id=terminal.id %}" class="btn btn-primary flex-grow-1">
+                            <i class="fa-solid fa-key me-1"></i> Start Shift
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'pos:terminal_update' pk=terminal.id %}" class="btn btn-outline-secondary" title="Configure Terminal">
+                        <i class="fa-solid fa-gear"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <i class="fa-solid fa-cash-register fa-3x text-muted mb-3"></i>
+                    <h4>No POS Terminals Configured</h4>
+                    <p class="text-muted">Create your first retail counter register to start fast checkout billing.</p>
+                    <a href="{% url 'pos:terminal_create' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-plus me-1"></i> Add POS Terminal
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Nexora Enterprise OS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-cash-register text-primary me-2"></i>{{ page_title }}</h5>
+                    <a href="{% url 'pos:terminal_list' %}" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Terminal Code *</label>
+                                {{ form.terminal_code }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Terminal Name *</label>
+                                {{ form.name }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Branch *</label>
+                                {{ form.branch }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Stock Warehouse</label>
+                                {{ form.warehouse }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Cash General Ledger Account</label>
+                                {{ form.cash_account }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Static IP Address</label>
+                                {{ form.ip_address }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Receipt Header Text</label>
+                            {{ form.receipt_header }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Receipt Footer Text</label>
+                            {{ form.receipt_footer }}
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Status</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center pt-4">
+                                <div class="form-check">
+                                    {{ form.allow_offline_orders }}
+                                    <label class="form-check-label fw-bold ms-2">Allow Offline Mode</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fa-solid fa-save me-1"></i> Save Terminal Configuration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

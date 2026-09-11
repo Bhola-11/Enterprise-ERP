@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Z-Report - Shift {{ session.session_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h4 fw-bold mb-1"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>POS Shift Z-Report & Audit</h2>
+            <p class="text-muted mb-0">Official cashier end-of-day register reconciliation audit certificate.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-primary">
+                <i class="fa-solid fa-print me-1"></i> Print Z-Report
+            </button>
+            <a href="{% url 'pos:terminal_list' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Terminals List
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h4 class="fw-bold mb-0">NEXORA RETAIL SYSTEM</h4>
+                    <small class="text-white-50">END OF SHIFT REGISTER AUDIT (Z-REPORT)</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row border-bottom pb-3 mb-3 text-xs">
+                        <div class="col-6">
+                            <strong>Session Number:</strong> <span class="font-monospace">{{ session.session_number }}</span><br>
+                            <strong>Terminal:</strong> {{ session.terminal.name }} ({{ session.terminal.terminal_code }})<br>
+                            <strong>Branch:</strong> {{ session.terminal.branch.name }}
+                        </div>
+                        <div class="col-6 text-end">
+                            <strong>Cashier:</strong> {{ session.cashier.get_full_name|default:session.cashier.username }}<br>
+                            <strong>Open Time:</strong> {{ session.opening_time|date:"Y-m-d H:i" }}<br>
+                            <strong>Close Time:</strong> {{ session.closing_time|date:"Y-m-d H:i"|default:"Active Shift" }}
+                        </div>
+                    </div>
+
+                    <!-- Sales Figures -->
+                    <h6 class="fw-bold text-primary mb-3">1. Shift Sales Summary</h6>
+                    <table class="table table-bordered table-sm mb-4 text-xs">
+                        <tbody>
+                            <tr>
+                                <td>Gross Sales Amount</td>
+                                <td class="text-end font-monospace">${{ session.total_sales_amount|floatformat:2|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Tax Collected</td>
+                                <td class="text-end font-monospace">${{ session.total_tax_amount|floatformat:2|intcomma }}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Discounts & Coupons Applied</td>
+                                <td class="text-end font-monospace text-danger">-${{ session.total_discount_amount|floatformat:2|intcomma }}</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>Total Transactions / Orders Processed</td>
+                                <td class="text-end font-monospace">{{ session.total_orders_count }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Tender Breakdown -->
+                    <h6 class="fw-bold text-primary mb-3">2. Collections by Tender Method</h6>
+                    <table class="table table-bordered table-sm mb-4 text-xs">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Payment Method</th>
+                                <th class="text-end">Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for method, amt in z_data.payment_breakdown.items %}
+                            <tr>
+                                <td>{{ method }}</td>
+                                <td class="text-end font-monospace">${{ amt|floatformat:2|intcomma }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-muted text-center">No payment transactions recorded.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Cash Drawer Reconciliation -->
+                    <h6 class="fw-bold text-primary mb-3">3. Drawer Cash Balancing & Discrepancy</h6>
+                    <table class="table table-bordered table-sm mb-4 text-xs">
+                        <tbody>
+                            <tr>
+                                <td>Opening Float Cash</td>
+                                <td class="text-end font-monospace">${{ session.opening_cash|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Cash Added (Float In)</td>
+                                <td class="text-end font-monospace text-success">+${{ z_data.cash_ins|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Cash Removed (Safe Drop / Petty Cash)</td>
+                                <td class="text-end font-monospace text-danger">-${{ z_data.cash_outs|floatformat:2 }}</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>System Expected Drawer Cash</td>
+                                <td class="text-end font-monospace">${{ session.expected_cash|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Physical Counted Drawer Cash</td>
+                                <td class="text-end font-monospace">${{ session.counted_cash|floatformat:2 }}</td>
+                            </tr>
+                            <tr class="{% if session.cash_difference < 0 %}table-danger{% elif session.cash_difference > 0 %}table-warning{% else %}table-success{% endif %} fw-bold">
+                                <td>Cash Difference / Discrepancy</td>
+                                <td class="text-end font-monospace">
+                                    {% if session.cash_difference < 0 %}
+                                        SHORTAGE: -${{ session.cash_difference|abs|floatformat:2 }}
+                                    {% elif session.cash_difference > 0 %}
+                                        OVERAGE: +${{ session.cash_difference|floatformat:2 }}
+                                    {% else %}
+                                        BALANCED ($0.00)
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    {% if session.closing_notes %}
+                    <div class="alert alert-secondary text-xs">
+                        <strong>Cashier Closing Remarks:</strong> {{ session.closing_notes }}
+                    </div>
+                    {% endif %}
+
+                    <div class="row pt-5 text-center text-xs">
+                        <div class="col-6">
+                            <hr class="w-75 mx-auto">
+                            <strong>Cashier Signature</strong>
+                        </div>
+                        <div class="col-6">
+                            <hr class="w-75 mx-auto">
+                            <strong>Store Manager / Auditor Signature</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
