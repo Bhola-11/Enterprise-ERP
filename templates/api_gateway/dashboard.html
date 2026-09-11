@@ -1,0 +1,159 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Unified security, throttling, API key lifecycle, and telemetry gateway for external integrations.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'api_gateway:log_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list-check me-1"></i> Access Logs
+            </a>
+            <a href="{% url 'api_gateway:policy_list' %}" class="btn btn-outline-info">
+                <i class="fas fa-gauge-high me-1"></i> Rate Policies
+            </a>
+            <a href="{% url 'api_gateway:client_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Register Client App
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Total Gateway Calls</span>
+                    <h3 class="fw-bold text-dark mt-2 mb-0">{{ total_requests }}</h3>
+                    <small class="text-muted"><i class="fas fa-bolt me-1 text-warning"></i>Realtime Telemetry</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">2xx Success Traffic</span>
+                    <h3 class="fw-bold text-success mt-2 mb-0">{{ success_requests }}</h3>
+                    <small class="text-success"><i class="fas fa-circle-check me-1"></i>Healthy Responses</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-danger border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">4xx / 5xx Errors & Throttles</span>
+                    <h3 class="fw-bold text-danger mt-2 mb-0">{{ client_error_requests|add:server_error_requests }}</h3>
+                    <small class="text-danger"><i class="fas fa-triangle-exclamation me-1"></i>Throttled & Blocked</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <span class="text-muted small fw-semibold">Average Gateway Latency</span>
+                    <h3 class="fw-bold text-info mt-2 mb-0">{{ avg_latency }} <small class="text-muted fs-6">ms</small></h3>
+                    <small class="text-muted"><i class="fas fa-stopwatch me-1"></i>Round-trip execution</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-network-wired me-2 text-primary"></i>Active API Clients</h5>
+                    <a href="{% url 'api_gateway:client_list' %}" class="btn btn-sm btn-outline-primary">View All ({{ total_clients }})</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Client App</th>
+                                    <th>Contact</th>
+                                    <th>Rate Policy</th>
+                                    <th class="text-center">Keys</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in clients %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'api_gateway:client_detail' c.id %}" class="fw-bold text-dark text-decoration-none">
+                                            {{ c.client_name }}
+                                        </a>
+                                        <div class="small text-muted font-monospace">{{ c.client_id|truncatechars:18 }}</div>
+                                    </td>
+                                    <td><small class="text-muted">{{ c.contact_email }}</small></td>
+                                    <td><span class="badge bg-light text-dark border">{{ c.rate_limit_policy.name|default:"Default" }}</span></td>
+                                    <td class="text-center fw-bold">{{ c.keys_count }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'api_gateway:client_detail' c.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-key me-1"></i> Keys
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No API clients registered yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-satellite-dish me-2 text-success"></i>Live Gateway Activity</h5>
+                    <a href="{% url 'api_gateway:log_list' %}" class="btn btn-sm btn-outline-secondary">Full Log Audit</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 font-monospace small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end">Latency</th>
+                                    <th class="text-end">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                <tr>
+                                    <td><span class="badge bg-secondary">{{ log.http_method }}</span></td>
+                                    <td class="text-dark">{{ log.endpoint|truncatechars:30 }}</td>
+                                    <td class="text-center">
+                                        {% if log.status_code < 300 %}
+                                            <span class="badge bg-success">{{ log.status_code }}</span>
+                                        {% elif log.status_code < 500 %}
+                                            <span class="badge bg-warning text-dark">{{ log.status_code }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ log.status_code }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-muted">{{ log.response_time_ms }}ms</td>
+                                    <td class="text-end text-muted">{{ log.timestamp|date:"H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No gateway request logs recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

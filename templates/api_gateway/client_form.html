@@ -1,0 +1,62 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Register a new external application for authenticated API gateway access.</p>
+        </div>
+        <a href="{% url 'api_gateway:client_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Clients
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Client Application Name *</label>
+                        {{ form.client_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Developer / Contact Email *</label>
+                        {{ form.contact_email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Organization</label>
+                        {{ form.organization }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Rate Limiting Policy</label>
+                        {{ form.rate_limit_policy }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Allowed Scopes</label>
+                        {{ form.allowed_scopes }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">IP Whitelist Restrictions</label>
+                        {{ form.ip_whitelist }}
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch mt-2">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-semibold ms-2">Enable Client Application</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'api_gateway:client_list' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Save & Continue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

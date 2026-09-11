@@ -1,0 +1,155 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 font-weight-bold text-gray-800 mb-0">{{ client.client_name }}</h1>
+                {% if client.is_active %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary">Disabled</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">Client UUID: <code>{{ client.client_id }}</code> | Contact: {{ client.contact_email }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'api_gateway:client_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> All Clients
+            </a>
+            <a href="{% url 'api_gateway:dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line me-1"></i> Gateway Hub
+            </a>
+        </div>
+    </div>
+
+    {% if new_key_raw %}
+    <div class="alert alert-warning border-warning shadow-sm mb-4">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-triangle-exclamation fa-2x me-3 text-warning"></i>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1">Copy Your Secret API Key</h5>
+                <p class="mb-2">For security reasons, this raw API key will never be shown again. Store it securely in your environment variables:</p>
+                <div class="input-group">
+                    <input type="text" class="form-control font-monospace bg-light fw-bold text-danger" id="secretKeyField" value="{{ new_key_raw }}" readonly>
+                    <button class="btn btn-dark" onclick="navigator.clipboard.writeText('{{ new_key_raw }}'); alert('API Key copied to clipboard!');">
+                        <i class="fas fa-copy me-1"></i> Copy Secret
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-key me-2 text-primary"></i>Configured API Keys</h5>
+                    <span class="badge bg-primary">{{ keys.count }} Keys</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key Name</th>
+                                    <th>Type</th>
+                                    <th>Token Prefix / Preview</th>
+                                    <th class="text-end">Calls Count</th>
+                                    <th class="text-center">Expires</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for k in keys %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ k.name }}</div>
+                                        <small class="text-muted">Created {{ k.created_at|date:"Y-m-d" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if k.key_type == 'LIVE' %}
+                                            <span class="badge bg-success">LIVE</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">SANDBOX</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ k.raw_key_preview }}</code></td>
+                                    <td class="text-end fw-bold">{{ k.total_calls_count }}</td>
+                                    <td class="text-center"><small>{{ k.expires_at|date:"Y-m-d"|default:"Never" }}</small></td>
+                                    <td class="text-center">
+                                        {% if k.is_revoked %}
+                                            <span class="badge bg-danger">Revoked</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if not k.is_revoked %}
+                                            <form method="POST" action="{% url 'api_gateway:key_revoke' k.id %}" onsubmit="return confirm('Revoke this API key?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-ban me-1"></i> Revoke
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted small">Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No API keys created yet for this client.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-plus-circle me-2"></i>Generate New API Key</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Key Description *</label>
+                            {{ key_form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Environment Type *</label>
+                            {{ key_form.key_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Validity Period (Days)</label>
+                            {{ key_form.expires_in_days }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-key me-1"></i> Generate API Key
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="fas fa-shield-halved me-2 text-secondary"></i>Security Rules</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2"><strong>Rate Limit Policy:</strong> {{ client.rate_limit_policy.name|default:"Standard (60 req/min)" }}</p>
+                    <p class="small mb-2"><strong>Allowed Scopes:</strong> <code>{{ client.allowed_scopes }}</code></p>
+                    <p class="small mb-0"><strong>IP Whitelist:</strong> {{ client.ip_whitelist|default:"Unrestricted (0.0.0.0/0)" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

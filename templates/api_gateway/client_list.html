@@ -1,0 +1,73 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Authorized microservices, external partners, and third-party developer applications.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'api_gateway:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-chart-line me-1"></i> Dashboard
+            </a>
+            <a href="{% url 'api_gateway:client_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Register Client App
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Application Name</th>
+                            <th>Client UUID</th>
+                            <th>Contact Email</th>
+                            <th>Rate Policy</th>
+                            <th>Allowed Scopes</th>
+                            <th class="text-center">Active Keys</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in clients %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'api_gateway:client_detail' c.id %}" class="fw-bold text-primary text-decoration-none">
+                                    {{ c.client_name }}
+                                </a>
+                            </td>
+                            <td><code>{{ c.client_id }}</code></td>
+                            <td>{{ c.contact_email }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ c.rate_limit_policy.name|default:"Default Tier" }}</span></td>
+                            <td><small class="text-muted">{{ c.allowed_scopes|truncatechars:35 }}</small></td>
+                            <td class="text-center fw-bold">{{ c.keys_count }}</td>
+                            <td class="text-center">
+                                {% if c.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'api_gateway:client_detail' c.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-sliders me-1"></i> Manage
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No API clients registered yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

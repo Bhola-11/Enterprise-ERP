@@ -1,0 +1,96 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 font-weight-bold text-gray-800">{{ page_title }}</h1>
+            <p class="text-muted mb-0">Configure rate limiters, burst tolerances, and request velocity rules.</p>
+        </div>
+        <a href="{% url 'api_gateway:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Gateway
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Policy Tier</th>
+                                    <th class="text-end">Req / Minute</th>
+                                    <th class="text-end">Req / Hour</th>
+                                    <th class="text-end">Burst Allowance</th>
+                                    <th class="text-center">Assigned Clients</th>
+                                    <th class="text-center">Default</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in policies %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ p.name }}</td>
+                                    <td class="text-end fw-bold text-primary">{{ p.requests_per_minute }}</td>
+                                    <td class="text-end fw-bold">{{ p.requests_per_hour }}</td>
+                                    <td class="text-end">{{ p.burst_limit }}</td>
+                                    <td class="text-center fw-bold">{{ p.clients_count }}</td>
+                                    <td class="text-center">
+                                        {% if p.is_default %}
+                                            <span class="badge bg-success">Default Tier</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No rate policies configured.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-plus-circle me-2 text-primary"></i>New Rate Policy</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Policy Name *</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Max Requests / Minute *</label>
+                            {{ form.requests_per_minute }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Max Requests / Hour *</label>
+                            {{ form.requests_per_hour }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Burst Limit</label>
+                            {{ form.burst_limit }}
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            {{ form.is_default }}
+                            <label class="form-check-label fw-semibold ms-2">Set as Default Policy</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-save me-1"></i> Save Policy
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
