@@ -1,0 +1,88 @@
+﻿{% extends 'base.html' %}
+{% block title %}Daily Timesheets & Overtime Ledger - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-journal-check text-primary me-2"></i>Daily Timesheets & Overtime Ledger</h2>
+            <p class="text-muted mb-0">Automated timesheet calculation from biometric punch logs with 1.5x / 2.0x overtime splitting</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'shifts_rostering:punch_portal' %}" class="btn btn-outline-success">
+                <i class="bi bi-fingerprint me-1"></i> Biometric Clock
+            </a>
+            <a href="{% url 'shifts_rostering:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Timesheets Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>Shift</th>
+                            <th>Clock In / Out</th>
+                            <th>Regular (1.0x)</th>
+                            <th>Overtime (1.5x)</th>
+                            <th>Double (2.0x)</th>
+                            <th>Late Mins</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in summaries %}
+                        <tr>
+                            <td class="fw-bold">{{ t.date }}</td>
+                            <td>
+                                <div class="fw-bold">{{ t.employee.first_name }} {{ t.employee.last_name }}</div>
+                                <small class="text-muted">{{ t.employee.employee_id }}</small>
+                            </td>
+                            <td>{{ t.shift_template.name|default:"General Shift" }}</td>
+                            <td>
+                                {% if t.clock_in_time %}
+                                <small>{{ t.clock_in_time|date:"H:i" }} &rarr; {{ t.clock_out_time|date:"H:i"|default:"Active" }}</small>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-success">{{ t.regular_hours_worked }}h</td>
+                            <td class="fw-bold text-warning">{{ t.overtime_1_5x_hours }}h</td>
+                            <td class="fw-bold text-danger">{{ t.overtime_2_0x_hours }}h</td>
+                            <td>
+                                {% if t.late_minutes > 0 %}
+                                <span class="badge bg-warning text-dark">{{ t.late_minutes }} mins</span>
+                                {% else %}
+                                <span class="badge bg-light text-muted border">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if t.status == 'PRESENT' %}
+                                <span class="badge bg-success">Present</span>
+                                {% elif t.status == 'LATE' %}
+                                <span class="badge bg-warning text-dark">Late</span>
+                                {% elif t.status == 'ABSENT' %}
+                                <span class="badge bg-danger">Absent</span>
+                                {% else %}
+                                <span class="badge bg-info text-dark">{{ t.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">No timesheet records computed yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

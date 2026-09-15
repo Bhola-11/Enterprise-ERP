@@ -1,0 +1,157 @@
+﻿{% extends 'base.html' %}
+{% block title %}Shifts Rostering & Biometric Gateway - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-clock-history text-primary me-2"></i>Shift Rostering & Biometric Time Gateway</h2>
+            <p class="text-muted mb-0">Dynamic Shift Scheduling, Overtime Rule Automation & AI Biometric Punch Logging</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'shifts_rostering:roster_calendar' %}" class="btn btn-outline-primary">
+                <i class="bi bi-calendar3 me-1"></i> Roster Schedule
+            </a>
+            <a href="{% url 'shifts_rostering:punch_portal' %}" class="btn btn-outline-success">
+                <i class="bi bi-fingerprint me-1"></i> Biometric Clock
+            </a>
+            <a href="{% url 'shifts_rostering:roster_assign' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Assign Shift
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Today's Scheduled Workforce</div>
+                            <div class="fs-3 fw-bold">{{ total_scheduled }}</div>
+                            <div class="small text-white-75">{{ today }} roster active</div>
+                        </div>
+                        <i class="bi bi-people-fill fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-dark text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Active Shift Templates</div>
+                            <div class="fs-3 fw-bold">{{ shifts|length }}</div>
+                            <div class="small text-white-75">Multi-tier plant rotations</div>
+                        </div>
+                        <i class="bi bi-calendar2-range fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Weekly Regular Hours</div>
+                            <div class="fs-3 fw-bold">{{ total_reg }}h</div>
+                            <div class="small text-white-75">Standard 1.0x baseline</div>
+                        </div>
+                        <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-muted text-uppercase fw-semibold">Weekly Overtime (1.5x / 2.0x)</div>
+                            <div class="fs-3 fw-bold">{{ total_ot15 }}h / {{ total_ot20 }}h</div>
+                            <div class="small text-muted">FLSA compliant overtime</div>
+                        </div>
+                        <i class="bi bi-lightning-charge-fill fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Today's Live Roster -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-calendar2-week text-primary me-2"></i>Today's Scheduled Shift Roster</h5>
+                    <a href="{% url 'shifts_rostering:roster_calendar' %}" class="btn btn-sm btn-outline-primary">Open Full Board</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Shift Name</th>
+                                    <th>Timing</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in today_rosters %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ r.employee.first_name }} {{ r.employee.last_name }}</div>
+                                        <small class="text-muted">{{ r.employee.employee_id }}</small>
+                                    </td>
+                                    <td>{{ r.employee.department.name }}</td>
+                                    <td><span class="badge bg-primary">{{ r.shift_template.name }}</span></td>
+                                    <td class="fw-bold text-dark">{{ r.shift_template.start_time|time:"H:i" }} - {{ r.shift_template.end_time|time:"H:i" }}</td>
+                                    <td><span class="badge bg-success">{{ r.get_status_display }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No employees scheduled for today's shifts.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Biometric Stream -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-fingerprint text-success me-2"></i>Live Biometric Stream</h5>
+                    <a href="{% url 'shifts_rostering:punch_portal' %}" class="btn btn-sm btn-outline-success">Clock Terminal</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush small">
+                        {% for p in recent_punches %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong>{{ p.employee.first_name }} {{ p.employee.last_name }}</strong>
+                                <span class="badge {% if p.punch_type == 'CLOCK_IN' %}bg-success{% else %}bg-secondary{% endif %}">{{ p.get_punch_type_display }}</span>
+                            </div>
+                            <div class="text-muted d-flex justify-content-between">
+                                <span><i class="bi bi-geo-alt me-1"></i>{{ p.device_terminal_id }}</span>
+                                <span>{{ p.punch_time|date:"H:i:s" }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted">No biometric punches recorded today.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

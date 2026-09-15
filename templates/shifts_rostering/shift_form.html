@@ -1,0 +1,82 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-plus-circle text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Define working window, grace period, meal break, and differential multiplier</p>
+        </div>
+        <a href="{% url 'shifts_rostering:shift_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Shifts
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-7 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Shift Code *</label>
+                        {{ form.shift_code }}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Shift Name *</label>
+                        {{ form.name }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Shift Start Time *</label>
+                        {{ form.start_time }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Shift End Time *</label>
+                        {{ form.end_time }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Break (Minutes) *</label>
+                        {{ form.break_duration_minutes }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Grace Period (Mins) *</label>
+                        {{ form.grace_period_minutes }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Rate Multiplier *</label>
+                        {{ form.hourly_rate_multiplier }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.is_night_shift }}
+                            <label class="form-check-label fw-bold ms-2">Night Shift (Includes Night Differential)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold ms-2">Active Shift</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'shifts_rostering:shift_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save Shift Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

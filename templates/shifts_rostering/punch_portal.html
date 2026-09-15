@@ -1,0 +1,121 @@
+﻿{% extends 'base.html' %}
+{% block title %}Biometric Punch Terminal - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-fingerprint text-success me-2"></i>Biometric Attendance Punch Terminal</h2>
+            <p class="text-muted mb-0">Record physical/mobile attendance punches with AI facial & RFID authentication</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'shifts_rostering:timesheet_summary' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-journal-text me-1"></i> View Timesheets
+            </a>
+            <a href="{% url 'shifts_rostering:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Punch Clock Form -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 bg-light h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-clock text-primary me-2"></i>Virtual Punch Terminal</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Employee *</label>
+                            {{ form.employee }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Punch Action *</label>
+                            {{ form.punch_type }}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Terminal ID</label>
+                                {{ form.device_terminal_id }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Verification Method</label>
+                                {{ form.verification_method }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Timestamp</label>
+                            {{ form.punch_time }}
+                        </div>
+
+                        <div class="form-check mb-4">
+                            {{ form.is_manual_override }}
+                            <label class="form-check-label fw-bold ms-2">HR Manual Override</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2 fs-5 fw-bold shadow-sm">
+                            <i class="bi bi-check-circle-fill me-2"></i> Register Biometric Punch
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Punch Logs Stream -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-list-columns text-primary me-2"></i>Real-Time Punch Event Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Event</th>
+                                    <th>Verification</th>
+                                    <th>Terminal</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in punches %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ p.employee.first_name }} {{ p.employee.last_name }}</div>
+                                        <small class="text-muted">{{ p.employee.employee_id }}</small>
+                                    </td>
+                                    <td>
+                                        {% if p.punch_type == 'CLOCK_IN' %}
+                                        <span class="badge bg-success"><i class="bi bi-box-arrow-in-right me-1"></i>Clock In</span>
+                                        {% elif p.punch_type == 'CLOCK_OUT' %}
+                                        <span class="badge bg-secondary"><i class="bi bi-box-arrow-right me-1"></i>Clock Out</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark">{{ p.get_punch_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small class="badge bg-light text-dark border">{{ p.get_verification_method_display }}</small></td>
+                                    <td><small class="text-muted">{{ p.device_terminal_id }}</small></td>
+                                    <td class="fw-bold">{{ p.punch_time|date:"M d, Y H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">No biometric punch logs registered.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
