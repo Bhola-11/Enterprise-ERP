@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}B2B Account Settings - Nexora Enterprise{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">B2B Account & Tier Configuration</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Commercial credit limits, wholesale price tiers, and tax exemption compliance</p>
+        </div>
+        <a href="{% url 'b2b_portal:dashboard' %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium transition">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Linked Enterprise Customer</label>
+                    {{ form.customer }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">B2B Account Number</label>
+                    {{ form.account_number }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Primary Procurement Contact</label>
+                    {{ form.primary_contact }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Credit Limit ($ USD)</label>
+                    {{ form.credit_limit }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Payment Terms</label>
+                    {{ form.payment_terms }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Discount Tier Name</label>
+                    {{ form.discount_tier_name }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Tax Exemption Resale Certificate Number</label>
+                    {{ form.tax_exemption_number }}
+                </div>
+                <div class="flex items-center gap-6 md:col-span-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {{ form.portal_access_enabled }} Enable Buyer Self-Service Portal Access
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {{ form.is_active }} Account Active
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition">
+                    Save Account Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

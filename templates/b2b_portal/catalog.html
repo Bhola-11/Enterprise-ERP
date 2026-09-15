@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}B2B Product Catalog - Nexora Enterprise{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">B2B Wholesale Catalog</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Pre-negotiated contract pricing & wholesale volume tiers</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'b2b_portal:quick_order' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition">
+                <i class="fas fa-shopping-basket mr-1.5"></i> Order by Bulk SKU
+            </a>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in catalog_data %}
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col justify-between hover:border-indigo-300 dark:hover:border-indigo-600 transition">
+            <div class="p-5">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{{ item.sku }}</span>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mt-2">{{ item.product.name }}</h3>
+                    </div>
+                    <span class="text-xs px-2.5 py-1 rounded-full font-medium {% if item.stock > 10 %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300{% else %}bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300{% endif %}">
+                        In Stock: {{ item.stock }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{{ item.product.description|default:"Enterprise-grade component manufactured according to ISO 9001 standard tolerances." }}</p>
+
+                <div class="mt-4 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Tier Unit Price</p>
+                            <span class="text-xl font-extrabold text-slate-800 dark:text-white">${{ item.pricing.final_unit_price|floatformat:2 }}</span>
+                        </div>
+                        {% if item.pricing.discount_percentage > 0 %}
+                        <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                            {{ item.pricing.discount_percentage }}% Volume Off
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Base Price: <span class="line-through">${{ item.pricing.unit_price|floatformat:2 }}</span></p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50/50 dark:bg-slate-700/20 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <span class="text-xs text-slate-500 dark:text-slate-400">Min Order: 1 Unit</span>
+                <a href="{% url 'b2b_portal:quick_order' %}" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition">
+                    <i class="fas fa-cart-plus mr-1"></i> Quick Add
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 p-12 text-center text-slate-400 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+            <i class="fas fa-boxes text-4xl mb-3 text-slate-300"></i>
+            <p>No products currently available in B2B catalog.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
