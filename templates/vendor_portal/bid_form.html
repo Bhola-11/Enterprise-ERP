@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Submit Proposal for RFQ - Vendor Portal{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Submit Proposal for {{ rfq.rfq_number }}</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ rfq.title }}</p>
+        </div>
+        <a href="{% url 'vendor_portal:rfq_list' %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium transition">
+            <i class="fas fa-arrow-left mr-1"></i> Back to RFQ List
+        </a>
+    </div>
+
+    <!-- RFQ Details & Items -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <h3 class="font-bold text-slate-800 dark:text-white mb-2">Scope & Specifications</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">{{ rfq.description }}</p>
+
+        <!-- Bid Submission Form -->
+        <form method="post" class="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Select RFQ Target</label>
+                    {{ form.rfq }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Vendor Entity</label>
+                    {{ form.vendor }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Total Commercial Bid Amount ($ USD) *</label>
+                    {{ form.total_bid_amount }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Guaranteed Lead Time (Days) *</label>
+                    {{ form.lead_time_days }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Warranty Period (Months) *</label>
+                    {{ form.warranty_months }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Technical & Manufacturing Remarks</label>
+                    {{ form.vendor_remarks }}
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition">
+                    <i class="fas fa-check-circle mr-1"></i> Submit Certified Supplier Bid
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

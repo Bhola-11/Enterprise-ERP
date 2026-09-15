@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Upload Supplier Invoice - Vendor Portal{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Supplier Invoices & 3-Way Match Validation</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Electronic invoice submission with automated discrepancy checking against PO and GRN</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm">Submitted Supplier Invoices</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+                            <th class="p-3">Invoice #</th>
+                            <th class="p-3">Vendor</th>
+                            <th class="p-3">PO #</th>
+                            <th class="p-3 text-right">Total</th>
+                            <th class="p-3 text-center">3-Way Match</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                        {% for i in invoices %}
+                        <tr>
+                            <td class="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ i.invoice_number }}</td>
+                            <td class="p-3 font-medium">{{ i.vendor.supplier.name }}</td>
+                            <td class="p-3 font-mono text-slate-500">{{ i.purchase_order.po_number }}</td>
+                            <td class="p-3 text-right font-bold">${{ i.total_amount|floatformat:2 }}</td>
+                            <td class="p-3 text-center">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {% if i.match_status == 'MATCH_PASSED' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300{% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300{% endif %}">
+                                    {{ i.get_match_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-6 text-center text-slate-400">No invoices submitted.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Upload Invoice Card -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 space-y-4">
+            <h3 class="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="fas fa-file-upload text-indigo-500"></i> Upload Supplier Invoice
+            </h3>
+            <form method="post" action="{% url 'vendor_portal:invoice_upload' %}" class="space-y-3">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Vendor Entity</label>
+                    <select name="vendor" class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+                        {% for inv in invoices %}<option value="{{ inv.vendor.id }}">{{ inv.vendor.supplier.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Target PO</label>
+                    <select name="purchase_order" class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+                        {% for inv in invoices %}<option value="{{ inv.purchase_order.id }}">{{ inv.purchase_order.po_number }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Invoice Number</label>
+                    <input type="text" name="invoice_number" value="INV-VEND-2026-09" class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Total Amount ($ USD)</label>
+                    <input type="number" step="0.01" name="total_amount" value="54000.00" class="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+                </div>
+                <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition">
+                    Upload & Run 3-Way Match
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

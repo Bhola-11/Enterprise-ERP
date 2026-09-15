@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}3-Way Match Verification - Vendor Portal{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">3-Way Match Audit Console</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Algorithmic reconciliation: Purchase Order vs Goods Receipt Note (GRN) vs Vendor Invoice</p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                        <th class="p-4">Invoice Reference</th>
+                        <th class="p-4 text-right">PO Value</th>
+                        <th class="p-4 text-right">GRN Value</th>
+                        <th class="p-4 text-right">Invoice Value</th>
+                        <th class="p-4 text-right">Price Variance</th>
+                        <th class="p-4 text-center">Match Status</th>
+                        <th class="p-4">Audit Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                    {% for m in matches %}
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
+                        <td class="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ m.vendor_invoice.invoice_number }}</td>
+                        <td class="p-4 text-right">${{ m.po_amount|floatformat:2 }}</td>
+                        <td class="p-4 text-right">${{ m.grn_received_amount|floatformat:2 }}</td>
+                        <td class="p-4 text-right font-bold">${{ m.invoice_amount|floatformat:2 }}</td>
+                        <td class="p-4 text-right font-mono {% if m.price_variance == 0 %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                            ${{ m.price_variance|floatformat:2 }}
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {% if m.match_status == 'FULL_MATCH' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300{% else %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300{% endif %}">
+                                {{ m.get_match_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-xs text-slate-500">{{ m.verified_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-8 text-center text-slate-400">No 3-way match verifications recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
