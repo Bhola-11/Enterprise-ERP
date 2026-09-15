@@ -1,0 +1,135 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ cycle.name }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bold mb-0">{{ cycle.name }}</h2>
+                <span class="badge bg-primary fs-6">{{ cycle.get_cycle_type_display }}</span>
+                <span class="badge bg-success fs-6">{{ cycle.get_status_display }}</span>
+            </div>
+            <p class="text-muted mb-0">Period: {{ cycle.start_date }} to {{ cycle.end_date }} &bull; Manager Deadline: {{ cycle.manager_review_deadline }}</p>
+        </div>
+        <div>
+            <a href="{% url 'performance_appraisal:cycle_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Cycles
+            </a>
+        </div>
+    </div>
+
+    <!-- Cycle KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Total Submissions</div>
+                    <div class="fs-4 fw-bold">{{ analytics.total_submissions }}</div>
+                    <small class="text-muted">Assigned participants</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Completed Reviews</div>
+                    <div class="fs-4 fw-bold text-success">{{ analytics.completed_count }}</div>
+                    <small class="text-muted">{{ analytics.completion_rate }}% completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Average Final Score</div>
+                    <div class="fs-4 fw-bold text-primary">{{ analytics.average_score }} / 5.00</div>
+                    <small class="text-muted">Weighted composite</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Top Performers (Band 5)</div>
+                    <div class="fs-4 fw-bold text-warning">{{ analytics.band_distribution.OUTSTANDING }}</div>
+                    <small class="text-muted">Outstanding rating</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submissions Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-person-lines-fill text-primary me-2"></i>Participant Appraisal Submissions</h5>
+            <span class="badge bg-primary">{{ submissions|length }} Participants</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Evaluating Manager</th>
+                            <th>Self Score</th>
+                            <th>Peer Score</th>
+                            <th>Mgr Score</th>
+                            <th>Composite Final</th>
+                            <th>Performance Band</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in submissions %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ s.employee.first_name }} {{ s.employee.last_name }}</div>
+                                <small class="text-muted">{{ s.employee.employee_id }}</small>
+                            </td>
+                            <td>{{ s.employee.department.name }}</td>
+                            <td>{{ s.manager.first_name }} {{ s.manager.last_name }}</td>
+                            <td>{{ s.self_rating }}</td>
+                            <td>{{ s.peer_average_rating }}</td>
+                            <td>{{ s.manager_rating }}</td>
+                            <td class="fw-bold text-primary fs-6">{{ s.calibrated_final_score }}</td>
+                            <td>
+                                {% if s.overall_band == 'OUTSTANDING' %}
+                                <span class="badge bg-primary">5 - Outstanding</span>
+                                {% elif s.overall_band == 'EXCEEDS' %}
+                                <span class="badge bg-success">4 - Exceeds</span>
+                                {% elif s.overall_band == 'MEETS' %}
+                                <span class="badge bg-info text-dark">3 - Meets</span>
+                                {% elif s.overall_band == 'NEEDS_IMPROVEMENT' %}
+                                <span class="badge bg-warning text-dark">2 - Needs Imp</span>
+                                {% else %}
+                                <span class="badge bg-danger">1 - Unsatisfactory</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if s.status == 'COMPLETED' %}
+                                <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Completed</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">{{ s.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'performance_appraisal:submission_detail' s.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square me-1"></i> Scorecard
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">No employees registered under this appraisal cycle.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

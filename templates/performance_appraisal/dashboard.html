@@ -1,0 +1,150 @@
+﻿{% extends 'base.html' %}
+{% block title %}Performance Management & 360-Appraisal - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-star text-primary me-2"></i>360-Degree Performance & Appraisal Hub</h2>
+            <p class="text-muted mb-0">Multi-Rater Reviews, Competency Scoring, OKR Milestones & Continuous Peer Feedback</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'performance_appraisal:cycle_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-calendar3 me-1"></i> Review Cycles
+            </a>
+            <a href="{% url 'performance_appraisal:feedback_create' %}" class="btn btn-outline-primary">
+                <i class="bi bi-chat-heart me-1"></i> Give Feedback
+            </a>
+            <a href="{% url 'performance_appraisal:cycle_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Launch Cycle
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Cycle Banner -->
+    {% if active_cycle %}
+    <div class="card shadow-sm border-0 bg-primary text-white mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <span class="badge bg-white text-primary mb-2 text-uppercase fw-bold">{{ active_cycle.get_cycle_type_display }}</span>
+                    <h3 class="fw-bold mb-1">{{ active_cycle.name }}</h3>
+                    <p class="text-white-75 mb-0">
+                        <i class="bi bi-calendar-event me-1"></i> Self Review Deadline: <strong>{{ active_cycle.self_review_deadline }}</strong> &bull; 
+                        Manager Sign-off: <strong>{{ active_cycle.manager_review_deadline }}</strong>
+                    </p>
+                </div>
+                <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                    <div class="d-inline-block text-start bg-white bg-opacity-10 rounded p-3 me-3">
+                        <div class="small text-white-50">Completion Rate</div>
+                        <div class="fs-4 fw-bold">{{ analytics.completion_rate }}%</div>
+                        <small class="text-white-75">{{ analytics.completed_count }}/{{ analytics.total_submissions }} submitted</small>
+                    </div>
+                    <a href="{% url 'performance_appraisal:cycle_detail' active_cycle.id %}" class="btn btn-light fw-bold">
+                        <i class="bi bi-folder2-open me-1"></i> Manage Cycle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 mb-4">
+        <!-- Bell Curve & Band Distribution -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-bar-chart-line text-primary me-2"></i>Performance Rating Calibration Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics and analytics.completed_count > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-primary">5 - Outstanding (Top 10%)</span>
+                            <span class="fw-bold">{{ analytics.band_distribution.OUTSTANDING }} employees</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-primary" style="width: {% widthratio analytics.band_distribution.OUTSTANDING analytics.completed_count 100 %}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-success">4 - Exceeds Expectations</span>
+                            <span class="fw-bold">{{ analytics.band_distribution.EXCEEDS }} employees</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-success" style="width: {% widthratio analytics.band_distribution.EXCEEDS analytics.completed_count 100 %}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-info">3 - Consistently Meets Expectations</span>
+                            <span class="fw-bold">{{ analytics.band_distribution.MEETS }} employees</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-info" style="width: {% widthratio analytics.band_distribution.MEETS analytics.completed_count 100 %}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-warning">2 - Needs Improvement</span>
+                            <span class="fw-bold">{{ analytics.band_distribution.NEEDS_IMPROVEMENT }} employees</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-warning" style="width: {% widthratio analytics.band_distribution.NEEDS_IMPROVEMENT analytics.completed_count 100 %}%;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-danger">1 - Unsatisfactory</span>
+                            <span class="fw-bold">{{ analytics.band_distribution.UNSATISFACTORY }} employees</span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-danger" style="width: {% widthratio analytics.band_distribution.UNSATISFACTORY analytics.completed_count 100 %}%;"></div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-graph-up fs-1 d-block mb-2"></i>
+                        No completed appraisals in current cycle to plot bell-curve.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Continuous Feedback Stream -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-chat-heart text-danger me-2"></i>Continuous Peer Praise & 1-on-1s</h5>
+                    <a href="{% url 'performance_appraisal:feedback_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for f in recent_feedbacks %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge {% if f.feedback_type == 'PRAISE' %}bg-success{% elif f.feedback_type == 'CONSTRUCTIVE' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                    {{ f.get_feedback_type_display }}
+                                </span>
+                                <small class="text-muted">{{ f.created_at|date:"M d" }}</small>
+                            </div>
+                            <div class="fw-bold text-dark">{{ f.title }}</div>
+                            <small class="text-muted d-block mb-1">{{ f.giver.first_name }} &rarr; {{ f.employee.first_name }} {{ f.employee.last_name }}</small>
+                            <p class="mb-0 small text-secondary">{{ f.content|truncatewords:20 }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="p-4 text-center text-muted">No continuous feedback logs yet.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

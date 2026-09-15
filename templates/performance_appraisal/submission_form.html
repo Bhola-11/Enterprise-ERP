@@ -1,0 +1,65 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-check text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Cycle: {{ submission.cycle.name }} &bull; Department: {{ submission.employee.department.name }}</p>
+        </div>
+        <a href="{% url 'performance_appraisal:cycle_detail' submission.cycle.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Cycle
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-8 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <h5 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="bi bi-person me-2"></i>Self Evaluation (15% Weight)</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Self Rating (1.00 - 5.00) *</label>
+                        {{ form.self_rating }}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Self Review Accomplishments Summary</label>
+                        {{ form.self_summary }}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-primary border-bottom pb-2 mb-3 mt-4"><i class="bi bi-people me-2"></i>360 Peer Evaluation (25% Weight)</h5>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Peer Composite Average Rating (1.00 - 5.00)</label>
+                    {{ form.peer_average_rating }}
+                </div>
+
+                <h5 class="fw-bold text-primary border-bottom pb-2 mb-3 mt-4"><i class="bi bi-person-check me-2"></i>Manager Evaluation & Sign-off (60% Weight)</h5>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Manager Rating (1.00 - 5.00) *</label>
+                        {{ form.manager_rating }}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Manager Assessment & Growth Goals</label>
+                        {{ form.manager_summary }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Submission Workflow Status *</label>
+                    {{ form.status }}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'performance_appraisal:cycle_detail' submission.cycle.id %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-calculator me-1"></i> Calculate Composite Score & Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

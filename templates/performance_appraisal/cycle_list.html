@@ -1,0 +1,75 @@
+﻿{% extends 'base.html' %}
+{% block title %}Appraisal Review Cycles - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-calendar-check text-primary me-2"></i>Performance Review Cycles</h2>
+            <p class="text-muted mb-0">Annual, mid-year, and quarterly employee performance evaluation cycles</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'performance_appraisal:cycle_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> New Review Cycle
+            </a>
+            <a href="{% url 'performance_appraisal:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Cycles Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Cycle Name</th>
+                            <th>Review Type</th>
+                            <th>Review Period</th>
+                            <th>Self Review Due</th>
+                            <th>Manager Due</th>
+                            <th>Submissions</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in cycles %}
+                        <tr>
+                            <td class="fw-bold">{{ c.name }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ c.get_cycle_type_display }}</span></td>
+                            <td>{{ c.start_date }} to {{ c.end_date }}</td>
+                            <td>{{ c.self_review_deadline }}</td>
+                            <td>{{ c.manager_review_deadline }}</td>
+                            <td><span class="badge bg-primary">{{ c.subs_count }} Employees</span></td>
+                            <td>
+                                {% if c.status == 'ACTIVE' %}
+                                <span class="badge bg-success">Active</span>
+                                {% elif c.status == 'IN_CALIBRATION' %}
+                                <span class="badge bg-warning text-dark">Calibration</span>
+                                {% elif c.status == 'CLOSED' %}
+                                <span class="badge bg-secondary">Closed</span>
+                                {% else %}
+                                <span class="badge bg-dark">{{ c.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'performance_appraisal:cycle_detail' c.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-folder2-open me-1"></i> Open Cycle
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No appraisal cycles registered yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

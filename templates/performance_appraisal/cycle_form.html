@@ -1,0 +1,68 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-plus-circle text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Configure milestones and deadlines for enterprise performance appraisal</p>
+        </div>
+        <a href="{% url 'performance_appraisal:cycle_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Cycles
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-8 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">Cycle Name *</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Cycle Type *</label>
+                        {{ form.cycle_type }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Period Start Date *</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Period End Date *</label>
+                        {{ form.end_date }}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Self Review Deadline *</label>
+                        {{ form.self_review_deadline }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Manager Review Deadline *</label>
+                        {{ form.manager_review_deadline }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Lifecycle Status *</label>
+                    {{ form.status }}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'performance_appraisal:cycle_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save Appraisal Cycle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
