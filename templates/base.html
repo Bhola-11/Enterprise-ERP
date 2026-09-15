@@ -163,6 +163,26 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{% url 'succession_planning:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'succession_planning' %}active{% endif %}">
+                            <i class="fa-solid fa-sitemap"></i> Succession & 9-Box
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'performance_appraisal:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'performance_appraisal' %}active{% endif %}">
+                            <i class="fa-solid fa-star"></i> Performance & 360 Reviews
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'shifts_rostering:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'shifts_rostering' %}active{% endif %}">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Shifts & Rostering
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'localized_payroll:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'localized_payroll' %}active{% endif %}">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> Localized Payroll Engine
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{% url 'projects:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'projects' %}active{% endif %}">
                             <i class="fa-solid fa-diagram-project"></i> Project Portfolios
                         </a>

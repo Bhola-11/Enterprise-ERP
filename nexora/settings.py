@@ -73,6 +73,10 @@ INSTALLED_APPS = [
     'consolidation.apps.ConsolidationConfig',
     'treasury_cash.apps.TreasuryCashConfig',
     'fixed_assets_depr.apps.FixedAssetsDeprConfig',
+    'succession_planning.apps.SuccessionPlanningConfig',
+    'performance_appraisal.apps.PerformanceAppraisalConfig',
+    'shifts_rostering.apps.ShiftsRosteringConfig',
+    'localized_payroll.apps.LocalizedPayrollConfig',
 ]
 
 MIDDLEWARE = [

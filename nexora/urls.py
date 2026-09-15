@@ -65,6 +65,10 @@ urlpatterns = [
     path('consolidation/', include('consolidation.urls', namespace='consolidation')),
     path('treasury/', include('treasury_cash.urls', namespace='treasury_cash')),
     path('assets/depreciation/', include('fixed_assets_depr.urls', namespace='fixed_assets_depr')),
+    path('succession/', include('succession_planning.urls', namespace='succession_planning')),
+    path('performance/', include('performance_appraisal.urls', namespace='performance_appraisal')),
+    path('rostering/', include('shifts_rostering.urls', namespace='shifts_rostering')),
+    path('payroll-engine/', include('localized_payroll.urls', namespace='localized_payroll')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

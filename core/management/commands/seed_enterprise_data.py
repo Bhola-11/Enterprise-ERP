@@ -52,11 +52,26 @@ from fixed_assets_depr.models import (
     DepreciableAsset, AssetDepreciationPeriod, AssetImpairmentRecord, AssetDisposalRecord
 )
 from fixed_assets_depr.services import DepreciationEngine, AssetImpairmentService, AssetDisposalService
+from succession_planning.models import (
+    CriticalRolePosition, TalentProfile, SuccessionPlan
+)
+from performance_appraisal.models import (
+    AppraisalCycle, CompetencyFramework, AppraisalSubmission, ContinuousFeedbackNote
+)
+from performance_appraisal.services import AppraisalScoringEngine
+from shifts_rostering.models import (
+    ShiftTemplate, ShiftRosterAssignment, BiometricPunchLog, AttendanceSummaryPeriod
+)
+from shifts_rostering.services import OvertimeCalculationEngine
+from localized_payroll.models import (
+    TaxJurisdictionRule, SalaryStructure as LocalizedSalaryStructure, PayRunBatch, EmployeePayslip
+)
+from localized_payroll.services import GrossToNetPayrollEngine
 
 
 import os
 from decimal import Decimal
-from datetime import date, timedelta
+from datetime import date, time, datetime, timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -1530,6 +1545,201 @@ class Command(BaseCommand):
             DepreciationEngine.post_depreciation_period(p, user=users['admin@nexora.com'])
 
         self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 36 modules!'))
+
+        # 37. Succession Planning & 9-Box Talent Calibration
+        crit_cfo, _ = CriticalRolePosition.objects.get_or_create(
+            position_code='ROLE-EXEC-CFO',
+            defaults={
+                'title': 'Chief Financial Officer & Global Treasurer',
+                'department': dept_fin,
+                'current_incumbent': emp_marcus,
+                'risk_of_vacancy': 'HIGH',
+                'impact_of_loss': 'CRITICAL',
+                'target_bench_strength': 2,
+                'required_competencies': 'CPA/CFA, Multi-entity statutory consolidation (IAS 21), Corporate treasury & cash pooling, SEC/IFRS compliance.'
+            }
+        )
+        crit_cto, _ = CriticalRolePosition.objects.get_or_create(
+            position_code='ROLE-ENG-VP',
+            defaults={
+                'title': 'VP of Product Engineering & AI Systems',
+                'department': dept_eng,
+                'current_incumbent': None,
+                'risk_of_vacancy': 'CRITICAL',
+                'impact_of_loss': 'CRITICAL',
+                'target_bench_strength': 1,
+                'required_competencies': 'Distributed system architecture, Industrial IoT robotics orchestration, Next-gen ERP platform scalability.'
+            }
+        )
+
+        TalentProfile.objects.get_or_create(
+            employee=emp_vance,
+            defaults={'performance_rating': 'HIGH', 'potential_rating': 'HIGH', 'flight_risk': 'LOW', 'key_strengths': 'Executive vision, capital allocation'}
+        )
+        TalentProfile.objects.get_or_create(
+            employee=emp_elena,
+            defaults={'performance_rating': 'HIGH', 'potential_rating': 'HIGH', 'flight_risk': 'MEDIUM', 'key_strengths': 'Enterprise sales leadership, global client relationships'}
+        )
+        TalentProfile.objects.get_or_create(
+            employee=emp_marcus,
+            defaults={'performance_rating': 'HIGH', 'potential_rating': 'MEDIUM', 'flight_risk': 'LOW', 'key_strengths': 'Statutory audit governance, corporate treasury'}
+        )
+        TalentProfile.objects.get_or_create(
+            employee=emp_claire,
+            defaults={'performance_rating': 'MEDIUM', 'potential_rating': 'HIGH', 'flight_risk': 'LOW', 'key_strengths': 'Global talent strategy, executive succession'}
+        )
+
+        SuccessionPlan.objects.get_or_create(
+            critical_position=crit_cfo,
+            successor_employee=emp_claire,
+            defaults={'readiness_level': 'READY_1_YEAR', 'ranking_priority': 1, 'development_needs': 'Executive treasury rotation and international tax certification'}
+        )
+        SuccessionPlan.objects.get_or_create(
+            critical_position=crit_cto,
+            successor_employee=emp_elena,
+            defaults={'readiness_level': 'READY_2_3_YEARS', 'ranking_priority': 1, 'development_needs': 'Technical product architecture executive training'}
+        )
+
+        # 38. Performance Management & 360 Appraisal
+        cycle_2026, _ = AppraisalCycle.objects.get_or_create(
+            name='FY 2026 Executive Performance & Compensation Review',
+            defaults={
+                'cycle_type': 'ANNUAL',
+                'start_date': date(2026, 1, 1),
+                'end_date': date(2026, 12, 31),
+                'self_review_deadline': date(2026, 11, 15),
+                'manager_review_deadline': date(2026, 11, 30),
+                'status': 'ACTIVE'
+            }
+        )
+
+        CompetencyFramework.objects.get_or_create(
+            name='Strategic Vision & Enterprise Execution',
+            defaults={'category': 'LEADERSHIP_MANAGEMENT', 'description': 'Aligns departmental OKRs with long-term commercial goals.', 'weight_percentage': Decimal('30.00')}
+        )
+        CompetencyFramework.objects.get_or_create(
+            name='Operational Excellence & Governance',
+            defaults={'category': 'FUNCTIONAL_EXPERTISE', 'description': 'Maintains high audit integrity and operational rigor.', 'weight_percentage': Decimal('35.00')}
+        )
+        CompetencyFramework.objects.get_or_create(
+            name='Customer Centricity & Agility',
+            defaults={'category': 'CORE_VALUE', 'description': 'Fosters rapid innovation responding to enterprise market shifts.', 'weight_percentage': Decimal('35.00')}
+        )
+
+        sub1, _ = AppraisalSubmission.objects.get_or_create(
+            cycle=cycle_2026,
+            employee=emp_elena,
+            defaults={
+                'manager': emp_vance,
+                'self_rating': Decimal('4.50'),
+                'self_summary': 'Exceeded enterprise ARR sales quota by 142% across North America and EMEA.',
+                'peer_average_rating': Decimal('4.20'),
+                'manager_rating': Decimal('4.80'),
+                'manager_summary': 'Sensational leadership in closing multi-year Tier-1 customer contracts.'
+            }
+        )
+        AppraisalScoringEngine.calculate_composite_score(sub1)
+
+        sub2, _ = AppraisalSubmission.objects.get_or_create(
+            cycle=cycle_2026,
+            employee=emp_marcus,
+            defaults={
+                'manager': emp_vance,
+                'self_rating': Decimal('4.00'),
+                'self_summary': 'Closed statutory audit on schedule and deployed global IAS 21 consolidation framework.',
+                'peer_average_rating': Decimal('3.90'),
+                'manager_rating': Decimal('4.20'),
+                'manager_summary': 'Dependable fiscal stewardship and excellent treasury cash pool leadership.'
+            }
+        )
+        AppraisalScoringEngine.calculate_composite_score(sub2)
+
+        ContinuousFeedbackNote.objects.get_or_create(
+            employee=emp_elena,
+            giver=emp_vance,
+            title='Outstanding Commercial Enterprise Pitch at Davos',
+            defaults={'feedback_type': 'PRAISE', 'content': 'Elena delivered an exceptional key account pitch that secured the global expansion deal.', 'is_private_manager': False}
+        )
+
+        # 39. Shifts Rostering & Biometric Gateway
+        shift_morn, _ = ShiftTemplate.objects.get_or_create(
+            shift_code='SHIFT-AM-ROB',
+            defaults={'name': 'Advanced Robotics Morning Shift', 'start_time': time(7, 30), 'end_time': time(16, 0), 'break_duration_minutes': 45, 'grace_period_minutes': 15, 'hourly_rate_multiplier': Decimal('1.00')}
+        )
+        shift_aft, _ = ShiftTemplate.objects.get_or_create(
+            shift_code='SHIFT-PM-SMT',
+            defaults={'name': 'SMT Manufacturing Afternoon Shift', 'start_time': time(15, 30), 'end_time': time(0, 0), 'break_duration_minutes': 45, 'grace_period_minutes': 15, 'hourly_rate_multiplier': Decimal('1.15')}
+        )
+        shift_night, _ = ShiftTemplate.objects.get_or_create(
+            shift_code='SHIFT-NIGHT-QA',
+            defaults={'name': 'Overnight Inspection & Stress Cell', 'start_time': time(23, 30), 'end_time': time(8, 0), 'break_duration_minutes': 45, 'grace_period_minutes': 15, 'is_night_shift': True, 'hourly_rate_multiplier': Decimal('1.30')}
+        )
+
+        for d_offset in range(7):
+            curr_d = date.today() + timedelta(days=d_offset)
+            ShiftRosterAssignment.objects.get_or_create(
+                employee=emp_claire,
+                date=curr_d,
+                defaults={'shift_template': shift_morn, 'status': 'CONFIRMED'}
+            )
+            ShiftRosterAssignment.objects.get_or_create(
+                employee=emp_elena,
+                date=curr_d,
+                defaults={'shift_template': shift_aft, 'status': 'SCHEDULED'}
+            )
+
+        tz = timezone.get_current_timezone()
+        BiometricPunchLog.objects.get_or_create(
+            employee=emp_claire,
+            punch_time=timezone.make_aware(datetime.combine(date.today(), time(7, 28)), tz),
+            defaults={'punch_type': 'CLOCK_IN', 'verification_method': 'FACIAL_RECOGNITION', 'device_terminal_id': 'BIO-GATEWAY-NYC-01'}
+        )
+        BiometricPunchLog.objects.get_or_create(
+            employee=emp_claire,
+            punch_time=timezone.make_aware(datetime.combine(date.today(), time(17, 30)), tz),
+            defaults={'punch_type': 'CLOCK_OUT', 'verification_method': 'FACIAL_RECOGNITION', 'device_terminal_id': 'BIO-GATEWAY-NYC-01'}
+        )
+        OvertimeCalculationEngine.process_daily_timesheet(emp_claire, date.today())
+
+        # 40. Localized Multi-Jurisdiction Payroll
+        jur_us, _ = TaxJurisdictionRule.objects.get_or_create(
+            country_code='US',
+            defaults={'country_name': 'United States', 'statutory_tax_name': 'US Federal W-4 & FICA', 'income_tax_effective_rate': Decimal('18.50'), 'social_security_rate': Decimal('6.20'), 'healthcare_insurance_rate': Decimal('1.45'), 'pension_employee_rate': Decimal('5.00'), 'employer_contribution_rate': Decimal('8.50')}
+        )
+        jur_uk, _ = TaxJurisdictionRule.objects.get_or_create(
+            country_code='GB',
+            defaults={'country_name': 'United Kingdom', 'statutory_tax_name': 'UK PAYE & National Insurance', 'income_tax_effective_rate': Decimal('20.00'), 'social_security_rate': Decimal('8.00'), 'healthcare_insurance_rate': Decimal('2.00'), 'pension_employee_rate': Decimal('5.00'), 'employer_contribution_rate': Decimal('9.00')}
+        )
+        jur_de, _ = TaxJurisdictionRule.objects.get_or_create(
+            country_code='DE',
+            defaults={'country_name': 'Germany (EU)', 'statutory_tax_name': 'Solidaritätszuschlag & Social Insurance', 'income_tax_effective_rate': Decimal('22.00'), 'social_security_rate': Decimal('9.30'), 'healthcare_insurance_rate': Decimal('7.30'), 'pension_employee_rate': Decimal('4.00'), 'employer_contribution_rate': Decimal('19.00')}
+        )
+
+        LocalizedSalaryStructure.objects.get_or_create(
+            employee=emp_vance,
+            defaults={'jurisdiction': jur_us, 'currency': 'USD', 'base_monthly_salary': Decimal('22000.00'), 'housing_allowance': Decimal('3000.00'), 'transport_allowance': Decimal('1000.00'), 'special_allowance': Decimal('2000.00')}
+        )
+        LocalizedSalaryStructure.objects.get_or_create(
+            employee=emp_elena,
+            defaults={'jurisdiction': jur_us, 'currency': 'USD', 'base_monthly_salary': Decimal('16000.00'), 'housing_allowance': Decimal('2500.00'), 'transport_allowance': Decimal('800.00'), 'special_allowance': Decimal('1500.00')}
+        )
+        LocalizedSalaryStructure.objects.get_or_create(
+            employee=emp_marcus,
+            defaults={'jurisdiction': jur_us, 'currency': 'USD', 'base_monthly_salary': Decimal('15000.00'), 'housing_allowance': Decimal('2000.00'), 'transport_allowance': Decimal('800.00'), 'special_allowance': Decimal('1000.00')}
+        )
+        LocalizedSalaryStructure.objects.get_or_create(
+            employee=emp_claire,
+            defaults={'jurisdiction': jur_us, 'currency': 'USD', 'base_monthly_salary': Decimal('14000.00'), 'housing_allowance': Decimal('2000.00'), 'transport_allowance': Decimal('800.00'), 'special_allowance': Decimal('1000.00')}
+        )
+
+        GrossToNetPayrollEngine.execute_batch_pay_run(
+            period_month=date.today().month,
+            period_year=date.today().year,
+            pay_date=date.today(),
+            user=users['admin@nexora.com']
+        )
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 40 modules!'))
 
 
 
