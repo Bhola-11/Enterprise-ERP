@@ -67,6 +67,18 @@ from localized_payroll.models import (
     TaxJurisdictionRule, SalaryStructure as LocalizedSalaryStructure, PayRunBatch, EmployeePayslip
 )
 from localized_payroll.services import GrossToNetPayrollEngine
+from b2b_portal.models import (
+    B2BAccount, B2BCatalogPriceTier, QuoteApprovalRequest, SelfServiceOrder, SelfServiceOrderItem, DigitalPaymentTransaction
+)
+from b2b_portal.services import B2BPricingEngine, CreditCheckService, DigitalPaymentGateway, QuoteConversionService
+from vendor_portal.models import (
+    VendorPortalProfile, SupplierBidRfq, SupplierBidSubmission, AdvanceShippingNotice, VendorInvoiceUpload, ThreeWayMatchVerification
+)
+from vendor_portal.services import VendorBiddingEngine, ASNReceiptMatcher, ThreeWayMatchEngine
+from field_service_fsm.models import (
+    ServiceTerritory, ServiceTechnician, WorkOrder, PartConsumption, CustomerSignoff
+)
+from field_service_fsm.services import DispatchSchedulingEngine, InventoryConsumptionEngine, SLATrackerService
 
 
 import os
@@ -1739,7 +1751,211 @@ class Command(BaseCommand):
             user=users['admin@nexora.com']
         )
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 40 modules!'))
+        # 41. B2B E-Commerce & Customer Portal
+        b2b_apex, _ = B2BAccount.objects.get_or_create(
+            customer=cust_apex,
+            defaults={
+                'organization': org,
+                'account_number': 'B2B-APEX-CORP',
+                'credit_limit': Decimal('1500000.00'),
+                'credit_balance_used': Decimal('147560.00'),
+                'payment_terms': 'NET30',
+                'discount_tier_name': 'Tier 1 Enterprise Platinum'
+            }
+        )
+        b2b_zenith, _ = B2BAccount.objects.get_or_create(
+            customer=cust_zenith,
+            defaults={
+                'organization': org,
+                'account_number': 'B2B-ZENITH-INT',
+                'credit_limit': Decimal('800000.00'),
+                'credit_balance_used': Decimal('50000.00'),
+                'payment_terms': 'NET60',
+                'discount_tier_name': 'Tier 2 Wholesale Gold'
+            }
+        )
+
+        B2BCatalogPriceTier.objects.get_or_create(
+            organization=org,
+            b2b_account=b2b_apex,
+            product=prods['NX-9000-SRV'],
+            min_quantity=10,
+            defaults={
+                'tier_unit_price': Decimal('6200.00'),
+                'discount_percentage': Decimal('8.00'),
+                'effective_from': date.today()
+            }
+        )
+
+        b2b_order, _ = SelfServiceOrder.objects.get_or_create(
+            order_number='B2B-ORD-2026-001',
+            defaults={
+                'organization': org,
+                'b2b_account': b2b_apex,
+                'po_reference_number': 'PO-APEX-GLOBAL-998',
+                'status': 'PROCESSING',
+                'subtotal_amount': Decimal('62000.00'),
+                'tax_amount': Decimal('4960.00'),
+                'total_amount': Decimal('66960.00'),
+                'shipping_address': 'Apex Central Receiving Dock 4, Seattle WA',
+                'billing_address': 'Apex Corporate Finance, Seattle WA',
+                'requested_delivery_date': date.today() + timedelta(days=5)
+            }
+        )
+        SelfServiceOrderItem.objects.get_or_create(
+            order=b2b_order,
+            product=prods['NX-9000-SRV'],
+            defaults={
+                'quantity': 10,
+                'unit_price': Decimal('6200.00'),
+                'subtotal': Decimal('62000.00')
+            }
+        )
+
+        DigitalPaymentGateway.execute_payment(
+            b2b_account=b2b_apex,
+            amount=Decimal('66960.00'),
+            gateway='STRIPE',
+            user=users['admin@nexora.com']
+        )
+
+        # 42. Vendor & Supplier Procurement Portal
+        vend_silicon, _ = VendorPortalProfile.objects.get_or_create(
+            supplier=sup_silicon,
+            defaults={
+                'organization': org,
+                'vendor_code': 'VEND-SILICON-001',
+                'rating_score': Decimal('4.90'),
+                'compliance_status': 'COMPLIANT',
+                'bank_swift_code': 'BOTKJPJTXXX',
+                'bank_iban': 'JP88BOTK12345678901234'
+            }
+        )
+        vend_metals, _ = VendorPortalProfile.objects.get_or_create(
+            supplier=sup_metals,
+            defaults={
+                'organization': org,
+                'vendor_code': 'VEND-METALS-002',
+                'rating_score': Decimal('4.70'),
+                'compliance_status': 'COMPLIANT',
+                'bank_swift_code': 'DEUTDEDBXXX',
+                'bank_iban': 'DE99DEUT98765432109876'
+            }
+        )
+
+        rfq_semi, _ = SupplierBidRfq.objects.get_or_create(
+            rfq_number='RFQ-2026-SEMICON-01',
+            defaults={
+                'organization': org,
+                'title': 'High-Yield FPGA Core Accelerators (Q4 Batch)',
+                'description': 'Procurement of 5,000 units military-grade FPGA cores with ISO 9001 certified batch test reports.',
+                'target_delivery_date': date.today() + timedelta(days=21),
+                'deadline': timezone.now() + timedelta(days=7),
+                'status': 'OPEN'
+            }
+        )
+
+        bid_silicon, _ = SupplierBidSubmission.objects.get_or_create(
+            rfq=rfq_semi,
+            vendor=vend_silicon,
+            defaults={
+                'organization': org,
+                'total_bid_amount': Decimal('145000.00'),
+                'lead_time_days': 14,
+                'warranty_months': 36,
+                'vendor_remarks': 'Full MIL-STD-883 burn-in screening included with 3-year replacement SLA.'
+            }
+        )
+        VendorBiddingEngine.calculate_bid_score(bid_silicon)
+
+        asn_silicon, _ = AdvanceShippingNotice.objects.get_or_create(
+            asn_number='ASN-2026-US-001',
+            defaults={
+                'organization': org,
+                'vendor': vend_silicon,
+                'purchase_order': po1,
+                'carrier_name': 'FedEx Freight Direct',
+                'tracking_number': 'FX-9988221100',
+                'dispatch_date': date.today() - timedelta(days=1),
+                'estimated_arrival_date': date.today() + timedelta(days=2),
+                'package_count': 4,
+                'notes': 'High-value sealed containers. Requires ESD handling.'
+            }
+        )
+        ASNReceiptMatcher.process_asn_delivery(asn_silicon)
+
+        inv_silicon, _ = VendorInvoiceUpload.objects.get_or_create(
+            invoice_number='INV-SILICON-8842',
+            defaults={
+                'organization': org,
+                'vendor': vend_silicon,
+                'purchase_order': po1,
+                'invoice_date': date.today(),
+                'subtotal_amount': po1.subtotal,
+                'tax_amount': po1.tax_amount,
+                'total_amount': po1.total_amount,
+                'pdf_document_url': 'https://vault.nexora.internal/invoices/silicon_8842.pdf'
+            }
+        )
+        ThreeWayMatchEngine.verify_invoice(inv_silicon)
+
+        # 43. Field Service Management (FSM)
+        terr_atx, _ = ServiceTerritory.objects.get_or_create(
+            code='TERR-ATX-METRO',
+            defaults={'organization': org, 'name': 'Austin Technology Corridor', 'city': 'Austin', 'country_code': 'US'}
+        )
+        terr_nyc, _ = ServiceTerritory.objects.get_or_create(
+            code='TERR-NYC-METRO',
+            defaults={'organization': org, 'name': 'Greater New York Metro', 'city': 'New York', 'country_code': 'US'}
+        )
+
+        tech_marcus, _ = ServiceTechnician.objects.get_or_create(
+            user=users['admin@nexora.com'],
+            defaults={
+                'organization': org,
+                'technician_code': 'TECH-ADM-001',
+                'primary_territory': terr_atx,
+                'skill_level': 'MASTER_ENGINEER',
+                'hourly_rate': Decimal('125.00'),
+                'is_available': True,
+                'current_latitude': Decimal('30.267200'),
+                'current_longitude': Decimal('-97.743100')
+            }
+        )
+
+        wo_repair, _ = WorkOrder.objects.get_or_create(
+            work_order_number='WO-2026-FSM-001',
+            defaults={
+                'organization': org,
+                'customer': cust_apex,
+                'territory': terr_atx,
+                'assigned_technician': tech_marcus,
+                'priority': 'CRITICAL_EMERGENCY',
+                'status': 'WORK_IN_PROGRESS',
+                'scheduled_start': timezone.now() - timedelta(hours=2),
+                'scheduled_end': timezone.now() + timedelta(hours=1),
+                'sla_deadline': timezone.now() + timedelta(hours=2),
+                'issue_summary': 'Server Rack Array High-Thermal Alarm (#RACK-04)',
+                'detailed_description': 'Redundant cooling turbine fault triggered thermal throttling in Sector B data bay.',
+                'service_address': 'Acme Cloud Data Center, 500 Silicon Hills Rd, Austin TX'
+            }
+        )
+
+        InventoryConsumptionEngine.record_part_consumption(
+            work_order=wo_repair,
+            product=prods['NX-9000-SRV'],
+            quantity=1
+        )
+
+        SLATrackerService.complete_with_signoff(
+            work_order=wo_repair,
+            signatory_name='David Warner (VP of Infrastructure)',
+            rating=5,
+            feedback='Marcus responded within 45 minutes and restored the redundant cooling manifold perfectly.'
+        )
+
+        self.stdout.write(self.style.SUCCESS('Successfully seeded enterprise demonstration data across all 43 modules!'))
+
 
 
 

@@ -246,6 +246,21 @@
                         <a href="{% url 'integrations_sdk:marketplace' %}" class="nav-link {% if request.resolver_match.app_name == 'integrations_sdk' %}active{% endif %}">
                             <i class="fa-solid fa-puzzle-piece"></i> Integrations & SDKs
                         </a>
+                    <li class="sidebar-heading">Portals & Field Operations</li>
+                    <li class="nav-item">
+                        <a href="{% url 'b2b_portal:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'b2b_portal' %}active{% endif %}">
+                            <i class="fa-solid fa-store"></i> B2B Customer Portal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vendor_portal:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'vendor_portal' %}active{% endif %}">
+                            <i class="fa-solid fa-handshake"></i> Vendor Supplier Portal
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'field_service_fsm:dashboard' %}" class="nav-link {% if request.resolver_match.app_name == 'field_service_fsm' %}active{% endif %}">
+                            <i class="fa-solid fa-truck-field"></i> Field Service (FSM)
+                        </a>
                     </li>
 
                     <li class="sidebar-heading">Administration & Governance</li>

@@ -69,6 +69,9 @@ urlpatterns = [
     path('performance/', include('performance_appraisal.urls', namespace='performance_appraisal')),
     path('rostering/', include('shifts_rostering.urls', namespace='shifts_rostering')),
     path('payroll-engine/', include('localized_payroll.urls', namespace='localized_payroll')),
+    path('b2b/', include('b2b_portal.urls', namespace='b2b_portal')),
+    path('vendor/', include('vendor_portal.urls', namespace='vendor_portal')),
+    path('fsm/', include('field_service_fsm.urls', namespace='field_service_fsm')),
     
     # REST API Layer
     path('api/v1/', include('api.urls', namespace='api_v1')),

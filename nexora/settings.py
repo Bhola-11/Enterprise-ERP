@@ -77,6 +77,9 @@ INSTALLED_APPS = [
     'performance_appraisal.apps.PerformanceAppraisalConfig',
     'shifts_rostering.apps.ShiftsRosteringConfig',
     'localized_payroll.apps.LocalizedPayrollConfig',
+    'b2b_portal.apps.B2BPortalConfig',
+    'vendor_portal.apps.VendorPortalConfig',
+    'field_service_fsm.apps.FieldServiceFsmConfig',
 ]
 
 MIDDLEWARE = [
