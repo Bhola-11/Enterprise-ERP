@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Customer Sign-Off - WO {{ wo.work_order_number }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Customer Digital Sign-Off</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Formal work order acceptance and satisfaction rating</p>
+        </div>
+        <a href="{% url 'field_service_fsm:work_order_detail' wo.id %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium transition">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Work Order
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Customer Signatory Name *</label>
+                {{ form.signatory_name }}
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Signatory Title</label>
+                {{ form.signatory_title }}
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Service Satisfaction Rating</label>
+                {{ form.satisfaction_rating }}
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1">Customer Feedback & Comments</label>
+                {{ form.feedback_notes }}
+            </div>
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button type="submit" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow transition">
+                    <i class="fas fa-signature mr-1"></i> Complete & Apply Digital Signature
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

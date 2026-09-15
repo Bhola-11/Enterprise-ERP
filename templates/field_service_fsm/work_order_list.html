@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Work Orders Register - Field Service FSM{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Field Work Orders Register</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Complete log of customer repair dispatches, maintenance routines, and SLA timers</p>
+        </div>
+        <a href="{% url 'field_service_fsm:work_order_create' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition">
+            <i class="fas fa-plus mr-1"></i> New Work Order
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                        <th class="p-4">WO #</th>
+                        <th class="p-4">Customer</th>
+                        <th class="p-4">Issue Description</th>
+                        <th class="p-4">Assigned Tech</th>
+                        <th class="p-4">Priority</th>
+                        <th class="p-4">SLA Window</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                    {% for w in work_orders %}
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
+                        <td class="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ w.work_order_number }}</td>
+                        <td class="p-4 font-medium">{{ w.customer.name }}</td>
+                        <td class="p-4 text-slate-600 dark:text-slate-300 font-medium">{{ w.issue_summary }}</td>
+                        <td class="p-4 text-slate-500">{{ w.assigned_technician.user.get_full_name|default:w.assigned_technician.technician_code|default:"Unassigned" }}</td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold {% if w.priority == 'CRITICAL_EMERGENCY' %}bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300{% elif w.priority == 'HIGH' %}bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">
+                                {{ w.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-slate-500 text-xs">{{ w.sla_deadline|date:"M d, H:i" }}</td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                                {{ w.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="{% url 'field_service_fsm:work_order_detail' w.id %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold transition">
+                                View <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">No field work orders recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Work Order {{ wo.work_order_number }} - Field Service FSM{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Work Order {{ wo.work_order_number }}</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ wo.customer.name }} - {{ wo.issue_summary }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'field_service_fsm:work_order_list' %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium transition">
+                <i class="fas fa-arrow-left mr-1"></i> Back
+            </a>
+            <a href="{% url 'field_service_fsm:consume_parts' wo.id %}" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition">
+                <i class="fas fa-wrench mr-1"></i> Log Parts
+            </a>
+            <a href="{% url 'field_service_fsm:customer_signoff' wo.id %}" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                <i class="fas fa-signature mr-1"></i> Sign-Off
+            </a>
+        </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-6">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-6 border-b border-slate-200 dark:border-slate-700">
+            <div>
+                <p class="text-xs text-slate-400 uppercase font-semibold">Priority</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold {% if wo.priority == 'CRITICAL_EMERGENCY' %}bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300{% else %}bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300{% endif %}">
+                    {{ wo.get_priority_display }}
+                </span>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase font-semibold">Status</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                    {{ wo.get_status_display }}
+                </span>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase font-semibold">Assigned Technician</p>
+                <p class="font-bold text-slate-800 dark:text-white text-sm">{{ wo.assigned_technician.user.get_full_name|default:wo.assigned_technician.technician_code|default:"Unassigned" }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase font-semibold">SLA Status</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold {% if sla_info.status == 'COMPLIANT' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300{% else %}bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300{% endif %}">
+                    {{ sla_info.status }} ({{ sla_info.remaining_hours }}h left)
+                </span>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="font-bold text-slate-800 dark:text-white text-sm mb-1">Issue Description</h3>
+            <p class="text-sm text-slate-600 dark:text-slate-300">{{ wo.detailed_description }}</p>
+        </div>
+
+        <!-- Consumed Parts Table -->
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <h3 class="font-bold text-slate-800 dark:text-white text-sm mb-3">Parts & Materials Consumed on Job</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+                            <th class="p-3">Part Name</th>
+                            <th class="p-3 text-center">Qty</th>
+                            <th class="p-3 text-right">Unit Cost</th>
+                            <th class="p-3 text-right">Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                        {% for p in parts %}
+                        <tr>
+                            <td class="p-3 font-medium">{{ p.product.name }}</td>
+                            <td class="p-3 text-center">{{ p.quantity }}</td>
+                            <td class="p-3 text-right">${{ p.unit_cost|floatformat:2 }}</td>
+                            <td class="p-3 text-right font-bold">${{ p.total_cost|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="p-4 text-center text-slate-400">No replacement parts logged yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Field Service Management (FSM) - Nexora Enterprise{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Field Service Management (FSM)</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Intelligent dispatch board, GPS routing, parts consumption & digital customer sign-off</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'field_service_fsm:dispatch_board' %}" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm flex items-center gap-1.5 transition">
+                <i class="fas fa-map-marked-alt"></i> Dispatch Board
+            </a>
+            <a href="{% url 'field_service_fsm:work_order_create' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm flex items-center gap-1.5 transition">
+                <i class="fas fa-plus"></i> New Work Order
+            </a>
+            <a href="{% url 'field_service_fsm:work_order_list' %}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition">
+                <i class="fas fa-clipboard-list"></i> Work Orders Register
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Total Work Orders</p>
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-white mt-1">{{ total_orders }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <i class="fas fa-wrench text-xl"></i>
+                </div>
+            </div>
+            <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-3 font-medium"><i class="fas fa-check-circle"></i> Service Tickets Logged</p>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Active / In Field</p>
+                    <h3 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ active_orders }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <i class="fas fa-truck-moving text-xl"></i>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">Dispatched & On Site</p>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Critical Emergencies</p>
+                    <h3 class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ emergency_orders }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+            </div>
+            <p class="text-xs text-rose-600 dark:text-rose-400 mt-3 font-medium">2-Hour SLA Window</p>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">Available Techs</p>
+                    <h3 class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ available_techs }} / {{ total_techs }}</h3>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+            </div>
+            <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-3 font-medium">Ready for Dispatch</p>
+        </div>
+    </div>
+
+    <!-- Recent Work Orders -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <i class="fas fa-tools text-indigo-500"></i> Recent Field Work Orders
+            </h2>
+            <a href="{% url 'field_service_fsm:work_order_list' %}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                        <th class="p-4">WO #</th>
+                        <th class="p-4">Customer</th>
+                        <th class="p-4">Territory</th>
+                        <th class="p-4">Technician</th>
+                        <th class="p-4">Priority</th>
+                        <th class="p-4">SLA Deadline</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-200">
+                    {% for w in recent_orders %}
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
+                        <td class="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ w.work_order_number }}</td>
+                        <td class="p-4 font-medium">{{ w.customer.name }}</td>
+                        <td class="p-4 text-slate-600 dark:text-slate-300">{{ w.territory.name|default:"General Metro" }}</td>
+                        <td class="p-4 text-slate-600 dark:text-slate-300">{{ w.assigned_technician.user.get_full_name|default:w.assigned_technician.technician_code|default:"Unassigned" }}</td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold {% if w.priority == 'CRITICAL_EMERGENCY' %}bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300{% elif w.priority == 'HIGH' %}bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300{% else %}bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">
+                                {{ w.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-slate-500 text-xs">{{ w.sla_deadline|date:"M d, H:i" }}</td>
+                        <td class="p-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                                {{ w.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <a href="{% url 'field_service_fsm:work_order_detail' w.id %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold transition">
+                                Details <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">No field work orders found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
