@@ -1,0 +1,172 @@
+﻿{% extends 'base.html' %}
+{% block title %}Multi-Jurisdiction Localized Payroll Engine - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-wallet2 text-primary me-2"></i>Multi-Jurisdiction Localized Payroll Engine</h2>
+            <p class="text-muted mb-0">Statutory Tax Localization (US W-4, UK PAYE, EU Social Security, India TDS), Gross-to-Net Engine & Digital Payslips</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'localized_payroll:payrun_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-list-check me-1"></i> Pay Runs
+            </a>
+            <a href="{% url 'localized_payroll:salary_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-cash-stack me-1"></i> Salary Register
+            </a>
+            <a href="{% url 'localized_payroll:payrun_create' %}" class="btn btn-primary">
+                <i class="bi bi-play-circle me-1"></i> Execute Pay Run
+            </a>
+        </div>
+    </div>
+
+    <!-- Financial KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Total Gross Payroll YTD</div>
+                            <div class="fs-3 fw-bold">${{ ytd_gross|floatformat:2 }}</div>
+                            <div class="small text-white-75">{{ total_runs }} batch runs executed</div>
+                        </div>
+                        <i class="bi bi-cash-coin fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Statutory Taxes & Withholding</div>
+                            <div class="fs-3 fw-bold">${{ ytd_tax|floatformat:2 }}</div>
+                            <div class="small text-white-75">Govt tax & social insurance</div>
+                        </div>
+                        <i class="bi bi-bank fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Net Employee Disbursement</div>
+                            <div class="fs-3 fw-bold">${{ ytd_net|floatformat:2 }}</div>
+                            <div class="small text-white-75">Direct deposit & bank transfers</div>
+                        </div>
+                        <i class="bi bi-check2-all fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-dark text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Active Payroll Headcount</div>
+                            <div class="fs-3 fw-bold">{{ active_salaries }}</div>
+                            <div class="small text-white-75">{{ jurisdictions|length }} country jurisdictions</div>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Recent Pay Runs -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-credit-card-2-front text-primary me-2"></i>Recent Batch Pay Runs</h5>
+                    <a href="{% url 'localized_payroll:payrun_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Batch #</th>
+                                    <th>Period</th>
+                                    <th>Pay Date</th>
+                                    <th>Gross Disbursed</th>
+                                    <th>Taxes Withheld</th>
+                                    <th>Net Disbursed</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in recent_runs %}
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border fw-bold">{{ r.batch_number }}</span></td>
+                                    <td class="fw-bold">{{ r.period_year }}-{{ r.period_month|stringformat:"02d" }}</td>
+                                    <td>{{ r.pay_date }}</td>
+                                    <td class="fw-bold">${{ r.total_gross_disbursed|floatformat:2 }}</td>
+                                    <td class="text-danger fw-bold">-${{ r.total_statutory_deductions|floatformat:2 }}</td>
+                                    <td class="text-success fw-bold">${{ r.total_net_disbursed|floatformat:2 }}</td>
+                                    <td>
+                                        {% if r.status == 'APPROVED' %}
+                                        <span class="badge bg-success">Approved</span>
+                                        {% elif r.status == 'POSTED_GL' %}
+                                        <span class="badge bg-primary">GL Posted</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ r.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'localized_payroll:payrun_detail' r.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Payslips
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">No pay runs executed yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statutory Tax Jurisdictions -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-globe text-primary me-2"></i>Tax Jurisdictions</h5>
+                    <a href="{% url 'localized_payroll:jurisdictions_list' %}" class="btn btn-sm btn-outline-secondary">Rules</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush small">
+                        {% for j in jurisdictions %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-dark"><span class="badge bg-secondary me-1">{{ j.country_code }}</span> {{ j.country_name }}</span>
+                                <span class="badge bg-primary">{{ j.income_tax_effective_rate }}% Tax</span>
+                            </div>
+                            <div class="text-muted d-flex justify-content-between">
+                                <span>{{ j.statutory_tax_name }}</span>
+                                <span>Social: {{ j.social_security_rate }}%</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted">No tax jurisdictions configured.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

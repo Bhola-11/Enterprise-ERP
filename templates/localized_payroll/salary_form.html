@@ -1,0 +1,71 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-plus-circle text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Assign statutory tax rules, base salary, and monthly allowances</p>
+        </div>
+        <a href="{% url 'localized_payroll:salary_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Salaries
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-7 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Employee *</label>
+                    {{ form.employee }}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tax Jurisdiction *</label>
+                        {{ form.jurisdiction }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Currency Code *</label>
+                        {{ form.currency }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Base Monthly Salary ($) *</label>
+                    {{ form.base_monthly_salary }}
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Housing Allowance</label>
+                        {{ form.housing_allowance }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Transport Allowance</label>
+                        {{ form.transport_allowance }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Special Allowance</label>
+                        {{ form.special_allowance }}
+                    </div>
+                </div>
+
+                <div class="form-check mb-4">
+                    {{ form.is_active }}
+                    <label class="form-check-label fw-bold ms-2">Active Salary Structure</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'localized_payroll:salary_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save Salary Structure
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

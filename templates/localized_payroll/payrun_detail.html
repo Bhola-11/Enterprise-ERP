@@ -1,0 +1,108 @@
+﻿{% extends 'base.html' %}
+{% block title %}Pay Run #{{ batch.batch_number }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bold mb-0">Pay Run #{{ batch.batch_number }}</h2>
+                <span class="badge bg-primary fs-6">{{ batch.period_year }}-{{ batch.period_month|stringformat:"02d" }}</span>
+                <span class="badge bg-success fs-6">{{ batch.get_status_display }}</span>
+            </div>
+            <p class="text-muted mb-0">Disbursement Date: {{ batch.pay_date }} &bull; Total Payslips: {{ batch.total_payslips_count }}</p>
+        </div>
+        <div>
+            <a href="{% url 'localized_payroll:payrun_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Pay Runs
+            </a>
+        </div>
+    </div>
+
+    <!-- Batch Summary Financial Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Total Gross Payroll</div>
+                    <div class="fs-4 fw-bold">${{ batch.total_gross_disbursed|floatformat:2 }}</div>
+                    <small class="text-muted">Total earnings & allowances</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Total Deductions & Taxes</div>
+                    <div class="fs-4 fw-bold text-danger">${{ batch.total_statutory_deductions|floatformat:2 }}</div>
+                    <small class="text-muted">Govt tax & social contributions</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase fw-semibold">Total Net Disbursed</div>
+                    <div class="fs-4 fw-bold text-success">${{ batch.total_net_disbursed|floatformat:2 }}</div>
+                    <small class="text-muted">Employee take-home</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payslips Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-person-lines-fill text-primary me-2"></i>Itemized Employee Payslips</h5>
+            <span class="badge bg-primary">{{ payslips|length }} Employee Records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Base Salary</th>
+                            <th>Allowances</th>
+                            <th>Gross Pay</th>
+                            <th>Income Tax</th>
+                            <th>Social & Pension</th>
+                            <th>Net Pay</th>
+                            <th>Employer Contrib</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ps in payslips %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ ps.employee.first_name }} {{ ps.employee.last_name }}</div>
+                                <small class="text-muted">{{ ps.employee.employee_id }}</small>
+                            </td>
+                            <td>{{ ps.employee.department.name }}</td>
+                            <td>${{ ps.base_earnings|floatformat:2 }}</td>
+                            <td>+${{ ps.total_allowances|floatformat:2 }}</td>
+                            <td class="fw-bold">${{ ps.gross_pay|floatformat:2 }}</td>
+                            <td class="text-danger">-${{ ps.statutory_income_tax|floatformat:2 }}</td>
+                            <td class="text-danger">-${{ ps.social_insurance_deduction|add:ps.pension_employee_deduction|floatformat:2 }}</td>
+                            <td class="fw-bold text-success fs-6">${{ ps.net_pay|floatformat:2 }}</td>
+                            <td><small class="text-muted">${{ ps.employer_contribution|floatformat:2 }}</small></td>
+                            <td class="text-end">
+                                <a href="{% url 'localized_payroll:payslip_detail' ps.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-text me-1"></i> Payslip
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5 text-muted">No payslips found in this pay run batch.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

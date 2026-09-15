@@ -1,0 +1,62 @@
+﻿{% extends 'base.html' %}
+{% block title %}Tax Jurisdictions - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-globe text-primary me-2"></i>Statutory Tax Jurisdictions & Rates</h2>
+            <p class="text-muted mb-0">Multi-country statutory withholding, pension contributions, and healthcare tax rules</p>
+        </div>
+        <div>
+            <a href="{% url 'localized_payroll:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Jurisdictions Grid -->
+    <div class="row g-4">
+        {% for r in rules %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary fs-6">{{ r.country_code }}</span>
+                    <h5 class="fw-bold mb-0 text-dark">{{ r.country_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted mb-3">{{ r.statutory_tax_name }}</div>
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted">Effective Income Tax Rate:</td>
+                            <td class="text-end fw-bold text-danger">{{ r.income_tax_effective_rate }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Social Security:</td>
+                            <td class="text-end fw-bold">{{ r.social_security_rate }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Healthcare Insurance:</td>
+                            <td class="text-end fw-bold">{{ r.healthcare_insurance_rate }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Employee Pension:</td>
+                            <td class="text-end fw-bold">{{ r.pension_employee_rate }}%</td>
+                        </tr>
+                        <tr class="border-top">
+                            <td class="text-muted fw-bold">Employer Contribution:</td>
+                            <td class="text-end fw-bold text-success">{{ r.employer_contribution_rate }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="bi bi-globe fs-1 d-block mb-2"></i>
+            No tax jurisdictions registered yet.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

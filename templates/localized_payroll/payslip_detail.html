@@ -1,0 +1,126 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i>Itemized Digital Payslip</h2>
+            <p class="text-muted mb-0">Official Statutory Salary Disbursement Record</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark">
+                <i class="bi bi-printer me-1"></i> Print Payslip
+            </button>
+            <a href="{% url 'localized_payroll:payrun_detail' payslip.pay_run.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Pay Run
+            </a>
+        </div>
+    </div>
+
+    <!-- Official Payslip Document Card -->
+    <div class="card shadow-sm border-0 col-lg-8 mx-auto p-4 bg-white">
+        <div class="card-body">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                <div>
+                    <h3 class="fw-bold text-primary mb-0">NEXORA ENTERPRISE</h3>
+                    <small class="text-muted text-uppercase">Statutory Earnings & Withholding Statement</small>
+                </div>
+                <div class="text-end">
+                    <div class="badge bg-light text-dark border fs-6">Pay Run: {{ payslip.pay_run.batch_number }}</div>
+                    <div class="small text-muted mt-1">Disbursement Date: {{ payslip.pay_run.pay_date }}</div>
+                </div>
+            </div>
+
+            <!-- Employee & Org Details -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="small text-muted">Employee Name</div>
+                    <h5 class="fw-bold mb-1">{{ payslip.employee.first_name }} {{ payslip.employee.last_name }}</h5>
+                    <div class="small text-muted">ID: {{ payslip.employee.employee_id }} &bull; Department: {{ payslip.employee.department.name }}</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="small text-muted">Designation & Branch</div>
+                    <div class="fw-bold">{{ payslip.employee.designation.name }}</div>
+                    <small class="text-muted">{{ payslip.employee.branch.name }} ({{ payslip.currency }})</small>
+                </div>
+            </div>
+
+            <!-- Earnings vs Deductions Table -->
+            <div class="row g-4 mb-4">
+                <!-- Earnings Column -->
+                <div class="col-md-6">
+                    <div class="card bg-light border-0">
+                        <div class="card-header bg-primary bg-opacity-10 py-2">
+                            <h6 class="fw-bold mb-0 text-primary">Earnings</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <td>Base Monthly Salary</td>
+                                    <td class="text-end fw-bold">${{ payslip.base_earnings|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Allowances (HRA / Transport)</td>
+                                    <td class="text-end fw-bold">+${{ payslip.total_allowances|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td class="fw-bold">Total Gross Earnings</td>
+                                    <td class="text-end fw-bold text-primary fs-6">${{ payslip.gross_pay|floatformat:2 }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deductions Column -->
+                <div class="col-md-6">
+                    <div class="card bg-light border-0">
+                        <div class="card-header bg-danger bg-opacity-10 py-2">
+                            <h6 class="fw-bold mb-0 text-danger">Statutory Deductions & Taxes</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <td>Income Tax Withholding</td>
+                                    <td class="text-end text-danger fw-bold">-${{ payslip.statutory_income_tax|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Social Security & Health</td>
+                                    <td class="text-end text-danger fw-bold">-${{ payslip.social_insurance_deduction|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Pension Contribution</td>
+                                    <td class="text-end text-danger fw-bold">-${{ payslip.pension_employee_deduction|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td class="fw-bold">Total Statutory Deductions</td>
+                                    <td class="text-end fw-bold text-danger fs-6">-${{ payslip.total_deductions|floatformat:2 }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Pay Box -->
+            <div class="card bg-success bg-opacity-10 border-success p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small text-muted text-uppercase fw-bold">Net Salary Payable</div>
+                        <small class="text-muted">Direct Deposit / Bank Wire</small>
+                    </div>
+                    <div class="fs-2 fw-bold text-success">${{ payslip.net_pay|floatformat:2 }}</div>
+                </div>
+            </div>
+
+            <!-- Footer / Employer Contribution -->
+            <div class="d-flex justify-content-between align-items-center text-muted small border-top pt-3">
+                <span>Employer Statutory Contribution: <strong>${{ payslip.employer_contribution|floatformat:2 }}</strong></span>
+                <span>System Generated & Locked &bull; Nexora OS</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

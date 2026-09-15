@@ -1,0 +1,50 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ page_title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-play-circle text-primary me-2"></i>{{ page_title }}</h2>
+            <p class="text-muted mb-0">Execute automated Gross-to-Net payroll calculations for all active employees across international tax jurisdictions</p>
+        </div>
+        <a href="{% url 'localized_payroll:payrun_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Pay Runs
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 col-lg-7 mx-auto">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Period Month (1-12) *</label>
+                        {{ form.period_month }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Period Year (e.g. 2026) *</label>
+                        {{ form.period_year }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Disbursement / Value Date *</label>
+                    {{ form.pay_date }}
+                </div>
+
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle me-1"></i> The payroll engine will evaluate each active employee's salary structure, compute base earnings, statutory income tax brackets, social security, and pension contributions, generating itemized payslips automatically.
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'localized_payroll:payrun_list' %}" class="btn btn-light">Cancel</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-calculator me-1"></i> Execute Batch Pay Run
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

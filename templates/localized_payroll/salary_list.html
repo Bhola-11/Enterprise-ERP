@@ -1,0 +1,70 @@
+﻿{% extends 'base.html' %}
+{% block title %}Employee Salary Structures - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-cash-stack text-primary me-2"></i>Employee Salary Structures</h2>
+            <p class="text-muted mb-0">Base compensation, allowances, and statutory tax jurisdiction assignments</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'localized_payroll:salary_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Configure Salary
+            </a>
+            <a href="{% url 'localized_payroll:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Salaries Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Jurisdiction</th>
+                            <th>Currency</th>
+                            <th>Base Monthly</th>
+                            <th>Allowances</th>
+                            <th>Total Gross</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in salaries %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ s.employee.first_name }} {{ s.employee.last_name }}</div>
+                                <small class="text-muted">{{ s.employee.employee_id }}</small>
+                            </td>
+                            <td>{{ s.employee.department.name }}</td>
+                            <td><span class="badge bg-secondary">{{ s.jurisdiction.country_code }} - {{ s.jurisdiction.country_name }}</span></td>
+                            <td><span class="badge bg-light text-dark border">{{ s.currency }}</span></td>
+                            <td class="fw-bold">${{ s.base_monthly_salary|floatformat:2 }}</td>
+                            <td>+${{ s.total_allowances|floatformat:2 }}</td>
+                            <td class="fw-bold text-primary fs-6">${{ s.total_gross_salary|floatformat:2 }}</td>
+                            <td>
+                                {% if s.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No salary structures configured yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
