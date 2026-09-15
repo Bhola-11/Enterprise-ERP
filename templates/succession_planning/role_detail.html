@@ -1,0 +1,166 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ role.position_code }} - {{ role.title }} - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bold mb-0">{{ role.title }}</h2>
+                <span class="badge bg-secondary fs-6">{{ role.position_code }}</span>
+                {% if role.bench_strength_status == 'HEALTHY' %}
+                <span class="badge bg-success fs-6"><i class="bi bi-check2 me-1"></i>Healthy Bench ({{ role.ready_now_count }}/{{ role.target_bench_strength }})</span>
+                {% elif role.bench_strength_status == 'MODERATE' %}
+                <span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split me-1"></i>Partial Bench ({{ role.ready_now_count }}/{{ role.target_bench_strength }})</span>
+                {% else %}
+                <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>At Risk (0 Ready)</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">Department: {{ role.department.name }} &bull; Vacancy Risk: {{ role.get_risk_of_vacancy_display }}</p>
+        </div>
+        <div>
+            <a href="{% url 'succession_planning:role_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Roles
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Incumbent & Position Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary me-2"></i>Current Incumbent</h5>
+                </div>
+                <div class="card-body">
+                    {% if role.current_incumbent %}
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 fs-3">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">{{ role.current_incumbent.first_name }} {{ role.current_incumbent.last_name }}</h5>
+                            <div class="text-muted">{{ role.current_incumbent.designation.name }}</div>
+                            <small class="badge bg-light text-dark border">{{ role.current_incumbent.employee_id }}</small>
+                        </div>
+                    </div>
+                    {% if role.current_incumbent.talent_profile %}
+                    <div class="alert alert-light border mb-0">
+                        <div class="d-flex justify-content-between">
+                            <span>9-Box Quadrant:</span>
+                            <strong>{{ role.current_incumbent.talent_profile.get_nine_box_quadrant_display }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span>Flight Risk:</span>
+                            <strong>{{ role.current_incumbent.talent_profile.get_flight_risk_display }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-octagon me-1"></i> Position is currently <strong>VACANT</strong>.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-journal-check text-info me-2"></i>Role Competencies</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ role.required_competencies|default:"No specific competency checklist documented." }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Successors Pipeline & Nomination Form -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-people text-primary me-2"></i>Successor Pipeline</h5>
+                    <span class="badge bg-primary">{{ successors|length }} Nominated Candidates</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Candidate</th>
+                                    <th>Readiness Timeline</th>
+                                    <th>Development Focus</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in successors %}
+                                <tr>
+                                    <td class="fw-bold">#{{ s.ranking_priority }}</td>
+                                    <td>
+                                        <div class="fw-bold">{{ s.successor_employee.first_name }} {{ s.successor_employee.last_name }}</div>
+                                        <small class="text-muted">{{ s.successor_employee.designation.name }}</small>
+                                    </td>
+                                    <td>
+                                        {% if s.readiness_level == 'READY_NOW' %}
+                                        <span class="badge bg-success"><i class="bi bi-lightning-charge me-1"></i>Ready Now (< 3 Mo)</span>
+                                        {% elif s.readiness_level == 'READY_1_YEAR' %}
+                                        <span class="badge bg-primary">Ready in 1 Year</span>
+                                        {% elif s.readiness_level == 'READY_2_3_YEARS' %}
+                                        <span class="badge bg-secondary">Ready in 2-3 Years</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark">Emergency Cover</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small class="text-muted">{{ s.development_needs|default:"Mentorship & leadership immersion" }}</small></td>
+                                    <td><span class="badge bg-light text-dark border">{{ s.status }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No successors nominated yet for this position.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nominate Successor Form -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-plus text-success me-2"></i>Nominate Successor Candidate</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label fw-bold">Successor Employee *</label>
+                                {{ form.successor_employee }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Readiness Level *</label>
+                                {{ form.readiness_level }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Ranking Priority *</label>
+                                {{ form.ranking_priority }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Development & Coaching Plan</label>
+                            {{ form.development_needs }}
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="bi bi-plus-circle me-1"></i> Add Candidate to Pipeline
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

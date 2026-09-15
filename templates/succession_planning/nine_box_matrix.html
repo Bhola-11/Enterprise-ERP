@@ -1,0 +1,198 @@
+﻿{% extends 'base.html' %}
+{% block title %}9-Box Talent Calibration Matrix - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-grid-3x3-gap text-primary me-2"></i>9-Box Talent Calibration Matrix</h2>
+            <p class="text-muted mb-0">Performance vs. Leadership Potential Talent Assessment Grid ({{ total_calibrated }} Calibrated Employees)</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'succession_planning:talent_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus me-1"></i> Calibrate Employee
+            </a>
+            <a href="{% url 'succession_planning:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Interactive 9-Box Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Row 1: High Potential (Y=3) -->
+        <div class="col-md-4">
+            <div class="card h-100 border-warning border-2 shadow-sm">
+                <div class="card-header bg-warning bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark"><i class="bi bi-gem text-warning me-1"></i>Rough Diamond</span>
+                    <span class="badge bg-warning text-dark">{{ matrix.1_3.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Low Performance &bull; High Potential</small>
+                    {% for p in matrix.1_3.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }} <small class="text-muted">({{ p.employee.department.name }})</small>
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-success border-2 shadow-sm">
+                <div class="card-header bg-success bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-success"><i class="bi bi-stars me-1"></i>High Potential</span>
+                    <span class="badge bg-success">{{ matrix.2_3.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Medium Performance &bull; High Potential</small>
+                    {% for p in matrix.2_3.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }} <small class="text-muted">({{ p.employee.department.name }})</small>
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-primary border-3 shadow-sm bg-primary bg-opacity-10">
+                <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="bi bi-award-fill me-1"></i>Star / Top Tier</span>
+                    <span class="badge bg-white text-primary">{{ matrix.3_3.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">High Performance &bull; High Potential</small>
+                    {% for p in matrix.3_3.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-white text-dark border d-block text-start mb-1 text-decoration-none p-2 shadow-sm">
+                        <i class="bi bi-star-fill text-warning me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }} <small class="text-muted">({{ p.employee.department.name }})</small>
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Medium Potential (Y=2) -->
+        <div class="col-md-4">
+            <div class="card h-100 border-secondary shadow-sm">
+                <div class="card-header bg-secondary bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-secondary"><i class="bi bi-question-circle me-1"></i>Inconsistent Performer</span>
+                    <span class="badge bg-secondary">{{ matrix.1_2.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Low Performance &bull; Medium Potential</small>
+                    {% for p in matrix.1_2.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-info shadow-sm">
+                <div class="card-header bg-info bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-info"><i class="bi bi-people-fill me-1"></i>Core Talent</span>
+                    <span class="badge bg-info text-dark">{{ matrix.2_2.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Medium Performance &bull; Medium Potential</small>
+                    {% for p in matrix.2_2.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-success shadow-sm">
+                <div class="card-header bg-success bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-success"><i class="bi bi-graph-up me-1"></i>High Performer</span>
+                    <span class="badge bg-success">{{ matrix.3_2.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">High Performance &bull; Medium Potential</small>
+                    {% for p in matrix.3_2.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Low Potential (Y=1) -->
+        <div class="col-md-4">
+            <div class="card h-100 border-danger border-2 shadow-sm">
+                <div class="card-header bg-danger bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-danger"><i class="bi bi-exclamation-octagon me-1"></i>Risk / Action Plan</span>
+                    <span class="badge bg-danger">{{ matrix.1_1.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Low Performance &bull; Low Potential</small>
+                    {% for p in matrix.1_1.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-secondary shadow-sm">
+                <div class="card-header bg-secondary bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-secondary"><i class="bi bi-briefcase me-1"></i>Effective Professional</span>
+                    <span class="badge bg-secondary">{{ matrix.2_1.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">Medium Performance &bull; Low Potential</small>
+                    {% for p in matrix.2_1.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-info shadow-sm">
+                <div class="card-header bg-info bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-info"><i class="bi bi-shield-shaded me-1"></i>Trusted Specialist</span>
+                    <span class="badge bg-info text-dark">{{ matrix.3_1.profiles|length }}</span>
+                </div>
+                <div class="card-body p-2" style="min-height: 140px; max-height: 180px; overflow-y: auto;">
+                    <small class="text-muted d-block mb-1">High Performance &bull; Low Potential</small>
+                    {% for p in matrix.3_1.profiles %}
+                    <a href="{% url 'succession_planning:talent_edit' p.employee.id %}" class="badge bg-light text-dark border d-block text-start mb-1 text-decoration-none p-2">
+                        <i class="bi bi-person me-1"></i>{{ p.employee.first_name }} {{ p.employee.last_name }}
+                    </a>
+                    {% empty %}
+                    <span class="text-muted small">No employees in quadrant.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+﻿{% extends 'base.html' %}
+{% block title %}Critical Leadership Positions - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-shield-shaded text-primary me-2"></i>Critical Leadership Key Positions</h2>
+            <p class="text-muted mb-0">High-impact organizational roles requiring active succession coverage</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'succession_planning:role_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Register Critical Role
+            </a>
+            <a href="{% url 'succession_planning:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Search by position code or title...">
+                </div>
+                <div class="col-md-4">
+                    <select name="department" class="form-select">
+                        <option value="">-- All Departments --</option>
+                        {% for d in departments %}
+                        <option value="{{ d.id }}" {% if selected_dept == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+                    <a href="{% url 'succession_planning:role_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Roles Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Code</th>
+                            <th>Position Title</th>
+                            <th>Department</th>
+                            <th>Current Incumbent</th>
+                            <th>Bench Coverage</th>
+                            <th>Vacancy Exposure</th>
+                            <th>Impact Level</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in roles %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark border fw-bold">{{ r.position_code }}</span></td>
+                            <td class="fw-bold">{{ r.title }}</td>
+                            <td>{{ r.department.name }}</td>
+                            <td>
+                                {% if r.current_incumbent %}
+                                <div>{{ r.current_incumbent.first_name }} {{ r.current_incumbent.last_name }}</div>
+                                <small class="text-muted">{{ r.current_incumbent.employee_id }}</small>
+                                {% else %}
+                                <span class="badge bg-danger">VACANT</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.bench_strength_status == 'HEALTHY' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Healthy ({{ r.ready_now_count }}/{{ r.target_bench_strength }})</span>
+                                {% elif r.bench_strength_status == 'MODERATE' %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Partial ({{ r.ready_now_count }}/{{ r.target_bench_strength }})</span>
+                                {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>At Risk (0 Ready)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.risk_of_vacancy == 'CRITICAL' %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif r.risk_of_vacancy == 'HIGH' %}
+                                <span class="badge bg-warning text-dark">High</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ r.risk_of_vacancy }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.get_impact_of_loss_display }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'succession_planning:role_detail' r.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-folder2-open me-1"></i> Manage Plan
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">No critical key roles found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

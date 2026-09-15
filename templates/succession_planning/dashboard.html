@@ -1,0 +1,204 @@
+﻿{% extends 'base.html' %}
+{% block title %}Succession Planning & Talent Pipeline - Nexora OS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-person-lines-fill text-primary me-2"></i>Executive Succession & Talent Pipeline</h2>
+            <p class="text-muted mb-0">9-Box Talent Calibration, Critical Leadership Bench Strength & Flight Risk Monitoring</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'succession_planning:nine_box_matrix' %}" class="btn btn-outline-primary">
+                <i class="bi bi-grid-3x3-gap me-1"></i> 9-Box Matrix Grid
+            </a>
+            <a href="{% url 'succession_planning:talent_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-people me-1"></i> Talent Calibration
+            </a>
+            <a href="{% url 'succession_planning:role_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Register Critical Role
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Critical Key Positions</div>
+                            <div class="fs-3 fw-bold">{{ kpis.total_critical_roles }}</div>
+                            <div class="small text-white-75">{{ kpis.roles_healthy }} roles fully covered</div>
+                        </div>
+                        <i class="bi bi-shield-check fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Bench Strength Coverage</div>
+                            <div class="fs-3 fw-bold">{{ kpis.pipeline_coverage_rate }}%</div>
+                            <div class="small text-white-75">{{ kpis.total_successors_nominated }} total successors in pipeline</div>
+                        </div>
+                        <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 {% if kpis.roles_at_risk > 0 %}bg-danger{% else %}bg-dark{% endif %} text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-white-50 text-uppercase fw-semibold">Roles Without Ready Successor</div>
+                            <div class="fs-3 fw-bold">{{ kpis.roles_at_risk }}</div>
+                            <div class="small text-white-75">Immediate vacancy exposure</div>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small text-muted text-uppercase fw-semibold">High Flight-Risk Stars</div>
+                            <div class="fs-3 fw-bold">{{ kpis.high_flight_risk_stars }}</div>
+                            <div class="small text-muted">High-potential retention priorities</div>
+                        </div>
+                        <i class="bi bi-airplane-engines fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Critical Roles & Succession Readiness Table -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-diagram-3 text-primary me-2"></i>Critical Leadership Positions</h5>
+                    <a href="{% url 'succession_planning:role_list' %}" class="btn btn-sm btn-outline-primary">View All Roles</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Role Code</th>
+                                    <th>Position Title</th>
+                                    <th>Department</th>
+                                    <th>Incumbent</th>
+                                    <th>Bench Status</th>
+                                    <th>Vacancy Risk</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in critical_roles %}
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border fw-bold">{{ r.position_code }}</span></td>
+                                    <td class="fw-bold">{{ r.title }}</td>
+                                    <td>{{ r.department.name }}</td>
+                                    <td>
+                                        {% if r.current_incumbent %}
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-person-circle text-muted"></i>
+                                            <span>{{ r.current_incumbent.first_name }} {{ r.current_incumbent.last_name }}</span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle me-1"></i>VACANT</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if r.bench_strength_status == 'HEALTHY' %}
+                                        <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Healthy ({{ r.ready_now_count }}/{{ r.target_bench_strength }})</span>
+                                        {% elif r.bench_strength_status == 'MODERATE' %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Partial ({{ r.ready_now_count }}/{{ r.target_bench_strength }})</span>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>At Risk (0 Ready)</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if r.risk_of_vacancy == 'CRITICAL' %}
+                                        <span class="badge bg-danger">Critical</span>
+                                        {% elif r.risk_of_vacancy == 'HIGH' %}
+                                        <span class="badge bg-warning text-dark">High</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ r.risk_of_vacancy }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'succession_planning:role_detail' r.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Succession Plan
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No critical positions configured.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ready Now Talent & Flight Risk Watchlist -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-lightning-charge text-success me-2"></i>Ready-Now Successors</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for s in ready_now_successors %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">{{ s.successor_employee.first_name }} {{ s.successor_employee.last_name }}</div>
+                                <small class="text-muted"><i class="bi bi-arrow-right-short"></i> Targets {{ s.critical_position.title }}</small>
+                            </div>
+                            <span class="badge bg-success">Ready Now</span>
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted">No successors marked 'Ready Now'.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-airplane-engines text-danger me-2"></i>Flight Risk Watchlist</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush small">
+                        {% for f in high_flight_risks %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="text-dark">{{ f.employee.first_name }} {{ f.employee.last_name }}</strong>
+                                <span class="badge bg-danger">High Risk</span>
+                            </div>
+                            <div class="text-muted">{{ f.employee.department.name }} &bull; {{ f.get_nine_box_quadrant_display }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="p-3 text-center text-muted">No active high flight-risk talent flags.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
